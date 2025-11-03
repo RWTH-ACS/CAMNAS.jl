@@ -8,9 +8,10 @@ begin # Initialization
 
     @assert inputSize in ["small", "medium", "big"]
     ENV["JULIA_DEBUG"] = "CAMNAS" # Enable debug output
-    # ENV["JL_MNA_RUNTIME_SWITCH"] = "true" # Enable runtime switch
-    # ENV["JL_MNA_PRINT_ACCELERATOR"] = "true" # Enable printing accelerator in each solve steps
+    ENV["JL_MNA_RUNTIME_SWITCH"] = "true" # Enable runtime switch
+    ENV["JL_MNA_PRINT_ACCELERATOR"] = "true" # Enable printing accelerator in each solve steps
     push!(LOAD_PATH, pwd())
+    #push!(LOAD_PATH, "$(pwd())/accelerators")
     @info LOAD_PATH
     using Pkg
     Pkg.activate(LOAD_PATH[4])
@@ -34,7 +35,7 @@ begin # Initialization
         rowIndex = parse.(Cint, split(system_matrix_strings[2]))
         colIndex = parse.(Cint, split(system_matrix_strings[3]))
 
-        system_matrix = dpsim_csr_matrix(
+        system_matrix = CAMNAS.dpsim_csr_matrix(
             Base.unsafe_convert(Ptr{Cdouble}, values),
             Base.unsafe_convert(Ptr{Cint}, rowIndex),
             Base.unsafe_convert(Ptr{Cint}, colIndex),
@@ -66,7 +67,16 @@ begin # Initialization
 end # end Initialization
 
 begin # Decomposition step
+    GC.enable(false) # We cannot be sure that system_matrix is garbage collected before the pointer is passed...
+    system_matrix = read_input(ArrayPath("$(@__DIR__)/system_matrix_$inputSize.txt"))
+    system_matrix_ptr = pointer_from_objref(system_matrix)
+    rhs_vector = read_input(VectorPath("$(@__DIR__)/rhs_$inputSize.txt"))
+    lhs_vector = zeros(Float64, length(rhs_vector))
+    rhs_reset = ones(Float64, length(rhs_vector))
+
+    
     @time decomp(Base.unsafe_convert(Ptr{dpsim_csr_matrix}, system_matrix_ptr))
+    GC.enable(true)
 end # end Decomposition
 
 begin # Solving step 
