@@ -19,13 +19,6 @@ function has_driver(accelerator::DummyAccelerator)
 end
 
 function discover_accelerator(accelerators::Vector{AbstractAccelerator}, accelerator::DummyAccelerator) 
-    try
-        has_driver(accelerator)
-    catch e
-        @error "Dummy driver not found: $e"
-        return
-    end
-    
     if !isempty(filter(x -> x.name == "dummy_accelerator", accelerators)) # check if cpu is already in accelerators_vector
         return
     end
