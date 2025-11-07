@@ -4,3 +4,5 @@ CAMNASCompiled
 */perfiles
 *.perf
 *.data.*
+src/accelerators/.acceleratorPerformanceIndicator
+src/system.env

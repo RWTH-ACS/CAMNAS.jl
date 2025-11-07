@@ -1,13 +1,11 @@
 export exampleAccelerator, exampleAccelerator_LUdecomp
 export discover_accelerator, mna_decomp, mna_solve
 
-
 """ Create Struct for new Accelerator. 
     Struct needs to be a subtype of `AbstractAccelerator` and Structname has to be the same as file name.
     with `name` and `properties` fields.
     Create two constructors: one default and one with passing parameters.
 """
-
 struct exampleAccelerator <: AbstractAccelerator 
     name::String
     properties::AcceleratorProperties
@@ -38,7 +36,6 @@ Create new exampleAccelerator struct object and push it into the `accelerators` 
 
 If there are multiple accelerator of the same type, make sure to discover all of them.
 """
-
 function discover_accelerator(accelerators::Vector{AbstractAccelerator}, accelerator::exampleAccelerator)
     if !isempty(filter(x -> x.name == "example", accelerators)) 
         return
@@ -55,7 +52,6 @@ end
 Check if the driver for the exampleAccelerator is available.
 Either use a specific function from the accelerator package or check if device list is not empty.
 """
-
 function has_driver(accelerator::exampleAccelerator)
     return false 
 end
@@ -67,7 +63,6 @@ Overload the function from AbstractAccelerator and adjust the Matrices A, B and 
     (e.g. MtlMatrix for Metal or CuArray for CUDA).
 Check for capabilities to run FP32 or FP64
 """
-
 function estimate_perf(accelerator::exampleAccelerator;
                         n::Int = 4096, 
                         trials::Int = 5,
@@ -92,7 +87,6 @@ Use `\` or `ldiv!` to solve the linear system.
 Make sure to convert the system_matrix to the appropriate type if necessary.
 DPsim expects a Float64 vector for the solution.
 """
-
 function mna_solve(system_matrix::AbstractLUdecomp, rhs, accelerator::exampleAccelerator)
     return system_matrix.lu_decomp \ rhs
 end

@@ -12,7 +12,6 @@ struct NoAccelerator <: AbstractAccelerator
 
 
 end
-
 struct NoAccelerator_LUdecomp <: AbstractLUdecomp 
     lu_decomp::LinearAlgebra.TransposeFactorization
 end
@@ -22,7 +21,6 @@ function has_driver(accelerator::NoAccelerator)
 end
 
 function discover_accelerator(accelerators::Vector{AbstractAccelerator}, accelerator::NoAccelerator)
-    
     try
         has_driver(accelerator)
     catch e
@@ -40,8 +38,6 @@ function discover_accelerator(accelerators::Vector{AbstractAccelerator}, acceler
     push!(accelerators, cpu)
 
 end
-
-
 
 function get_tdp(accelerator::NoAccelerator)
     return 95.0

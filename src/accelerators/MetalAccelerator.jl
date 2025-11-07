@@ -16,12 +16,10 @@ struct MetalAccelerator <: AbstractAccelerator
 end
 
 # DenseMatrix since Sparse Matrix support for Metal.jl is not implemented yet.
-
 struct MetalAccelerator_LUdecomp <: AbstractLUdecomp 
     lu_decomp::LU{Float32, MtlMatrix{Float32, Metal.PrivateStorage}, MtlVector{UInt32, Metal.PrivateStorage}}
     inverse::LU{Float32, MtlMatrix{Float32, Metal.PrivateStorage}, MtlVector{UInt32, Metal.PrivateStorage}}
 end
-
 
 function discover_accelerator(accelerators::Vector{AbstractAccelerator}, accelerator::MetalAccelerator)
     @debug "discovering MetalAccelerator"
@@ -47,14 +45,11 @@ function has_driver(accelerator::MetalAccelerator)
     return true
 end
 
-
 function estimate_perf(accelerator::MetalAccelerator;
                         n::Int = 4096, 
                         trials::Int = 5,
                         inT::DataType=Float32,
                         ouT::DataType=inT) # returns performance indicator
-
-
     A = Metal.mtl(ones(inT, n, n))
     B = Metal.mtl(ones(inT, n, n))
     C = Metal.mtl(zeros(ouT, n, n))
@@ -77,15 +72,11 @@ function get_tdp(accelerator::MetalAccelerator)
     return 25.0
 end
 
-
 # Metal does not support ldiv or \, this is why we calculate with the inverse 
 # either we calculate 2 lu decompositions or we move the calculated lu decomposition back to cpu, 
 # to calculate the inverse only to then move the inverse back to the gpu, because there is no inverse function in Metal.jl
-
 # this seems ineffective
-
 function mna_decomp(sparse_mat, accelerator::MetalAccelerator)
-
     if rank(sparse_mat) < size(sparse_mat, 1)
         # matrix is not of full rank -> can convert, but not invertible
         @error "Matrix is not of full rank, cannot invert."
@@ -104,7 +95,7 @@ end
 # Metal.jl does not include a solve function for LUdecomp yet and wrapper would be in objective-c
 # so we use the inverse to solve the system
 function mna_solve(system_matrix::MetalAccelerator_LUdecomp, rhs, accelerator::MetalAccelerator)
-# FIXME:
+# FIXME: ???
 # are dpsim matrices always nonsingular?
 
     # GPU solve step: not numerically stable, not as performant as \ or ldiv

@@ -9,7 +9,6 @@ using LinearAlgebra
 using BenchmarkTools
 # Hardwareawareness
 abstract type AbstractAccelerator end
-
 abstract type AbstractLUdecomp end
 
 struct AcceleratorProperties
@@ -17,7 +16,7 @@ struct AcceleratorProperties
     priority::Int64
     performanceIndicator::Float64      
     power_watts::Float64            # max Power usage
-    energy_efficiency::Float64      # performanceIndicator/W
+    energy_efficiency::Float64      # performanceIndicator/power_watts
 
     function AcceleratorProperties(availability::Bool, priority::Int64, performanceIndicator::Float64, power_watts::Float64) 
         new(availability, priority, performanceIndicator, power_watts, round(performanceIndicator/power_watts, digits=4))
@@ -29,9 +28,7 @@ struct AcceleratorProperties
 
 end
 
-
 # not in function on purpose, otherwise scope issue with include statements
-
 # include all accelerator files
 global accelerator_files
 accelerator_files = Vector()
@@ -44,10 +41,6 @@ for file in readdir(dirname(@__FILE__), join=true)
     end
 end
 @debug accelerator_files
-
-
-
-
 
 function load_all_accelerators(accelerators::Vector{AbstractAccelerator})   # Accelerator structs are called like the .jl file
     global accelerator_files
@@ -80,8 +73,6 @@ function load_all_accelerators(accelerators::Vector{AbstractAccelerator})   # Ac
             catch e
                 @error "Error loading accelerator from file '$file': $e"
             end
-
-            
         end
     end
 end
@@ -91,17 +82,13 @@ function has_driver(accelerator::AbstractAccelerator)
 end
 
 function discover_accelerator(accelerators::Vector{AbstractAccelerator}, accelerator::AbstractAccelerator)
-
     @error "discover_accelerator not implemented for $(typeof(accelerator))"
-
 end
-
 
 function mna_decomp(sparse_mat, accelerator::AbstractAccelerator)
     lu_decomp = SparseArrays.lu(sparse_mat) |> NoAccelerator_LUdecomp
     return lu_decomp
 end
-
 
 function mna_solve(system_matrix::AbstractLUdecomp, rhs, accelerator::AbstractAccelerator)
     return system_matrix.lu_decomp \ rhs
@@ -118,7 +105,6 @@ function estimate_perf(accelerator::AbstractAccelerator;
     C = zeros(ouT, n, n)
 
     # TODO: How can we create big random matrices where LU decomp exists?
-
     # idea: do not benchmark matrix multiplication, but LU decomp and solve step and calculate performance indicator from that
 
     min_time = @belapsed mul!($C, $A, $B)
@@ -149,7 +135,6 @@ function getPerformanceIndicator(accelerator::AbstractAccelerator)
     perf = nothing
 
     @debug "Checking for performance in file: $filepath and file exists: $(isfile(filepath))"
-    
 
     if isfile(filepath) # check if the file exists and try to read FLOPs
         open(filepath, "r") do file
@@ -177,12 +162,7 @@ function getPerformanceIndicator(accelerator::AbstractAccelerator)
         end
     end
 
-
-
     return perf
 
 end
-
-
-
-end
+end # Accelerators module

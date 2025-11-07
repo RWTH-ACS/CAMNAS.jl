@@ -8,8 +8,6 @@ struct DummyAccelerator <: AbstractAccelerator
     function DummyAccelerator(name::String = "dummy_accelerator", properties=AcceleratorProperties(true, 1, 1.0, 1.0))
         new(name, properties)
     end
-
-
 end
 
 struct DummyAccelerator_LUdecomp <: AbstractLUdecomp
@@ -21,7 +19,6 @@ function has_driver(accelerator::DummyAccelerator)
 end
 
 function discover_accelerator(accelerators::Vector{AbstractAccelerator}, accelerator::DummyAccelerator) 
-    
     try
         has_driver(accelerator)
     catch e
@@ -41,13 +38,9 @@ end
 
 # same implementation as NoAccelerator
 function estimate_perf(accelerator::DummyAccelerator) # returns flops in GFLOPs
-    
     return 400.0    #   choose an arbitrary performance value for dummyaccelerator
-
 end
 
 function get_tdp(accelerator::DummyAccelerator) # returns flops in GFLOPs
-    
     return 400.0    #   choose an arbitrary powerconsumption value for dummyaccelerator
-
 end

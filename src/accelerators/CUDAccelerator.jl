@@ -35,7 +35,6 @@ function has_driver(accelerator::CUDAccelerator)
 end
 
 function discover_accelerator(accelerators::Vector{AbstractAccelerator}, accelerator::CUDAccelerator) 
-
     try
         has_driver(accelerator)
     catch e
@@ -78,8 +77,6 @@ function estimate_perf(accelerator::CUDAccelerator;
                         trials::Int = 5,
                         inT::DataType=Float64,
                         ouT::DataType=inT)   # returns flops in GFLOPs
-
-
     dev::CUDA.CuDevice = accelerator.device
     @debug "Estimating performance Indication for CUDA device $(dev.handle) with benchmarking"
 
@@ -104,7 +101,6 @@ end
 
 
 function get_tdp(accelerator::CUDAccelerator)
-
     mapping = map_CuDevice_to_nvidiasmi()
     cuda_device_id = accelerator.device.handle
 
@@ -118,7 +114,6 @@ end
 function set_acceleratordevice!(acc::CUDAccelerator)
     # This function is used to set the CUDA device for the current thread
     # It is called by the CAMNAS.jl module to ensure that the correct device is used
-
     if acc.device == CUDA.device()
         @debug "CUDA device $(acc.device) is already set on Thread $(Threads.threadid())"
         return
@@ -161,5 +156,4 @@ function map_CuDevice_to_nvidiasmi()
     end
 
     return mapping
-
 end
