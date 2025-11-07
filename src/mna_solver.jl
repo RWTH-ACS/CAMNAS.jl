@@ -334,7 +334,7 @@ end
 Performs the MNA decomposition of the given sparse matrix using the current accelerator.
 """
 function mna_decomp(sparse_mat)
-    @debug "This decomposition is running on $(Threads.threadid())"
+    @debug "This decomposition is running on Thread $(Threads.threadid())"
     global accelerators_vector
     set_csr_mat(sparse_mat)
 
@@ -349,7 +349,8 @@ function mna_decomp(sparse_mat)
 
     if varDict["runtime_switch"]
         for accelerator in accelerators_vector
-            if any(x -> typeof(x) == get_ludecomp_type(accelerator), decomps) # check if accelerator is already in decomps
+            # Only perform decomposition once, if multiple accelerators of the same type are present
+            if any(x -> typeof(x) == get_ludecomp_type(accelerator), decomps)
                 continue
             end
             lu_decomp = Accelerators.mna_decomp(sparse_mat, accelerator)

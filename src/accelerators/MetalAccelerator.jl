@@ -39,7 +39,7 @@ function has_driver(accelerator::MetalAccelerator)
     try
         !isempty(Metal.devices())
     catch e
-        @error "Metal driver not found: $e"
+        @warn "Metal driver not found: $e"
         return false
     end
     return true

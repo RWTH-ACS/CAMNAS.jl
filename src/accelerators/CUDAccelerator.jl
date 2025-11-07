@@ -28,19 +28,17 @@ function has_driver(accelerator::CUDAccelerator)
     try
         CUDA.has_cuda()
     catch e
-        @error "CUDA driver not found: $e"
+        @warn "CUDA driver not found: $e"
         return false
     end
     return true
 end
 
 function discover_accelerator(accelerators::Vector{AbstractAccelerator}, accelerator::CUDAccelerator) 
-    try
-        has_driver(accelerator)
-    catch e
-        @error "CUDA driver not found: $e"
-        return
-    end
+    # if !        has_driver(accelerator)
+    #     @warn "CUDA driver not found: $e. Skipping CUDA accelerator discovery."
+    #             return
+#     end
 
     devices = collect(CUDA.devices())   # Vector of CUDA devices 
     @debug "Found $(length(devices)) CUDA devices"

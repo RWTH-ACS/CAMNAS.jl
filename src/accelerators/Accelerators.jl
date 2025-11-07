@@ -62,16 +62,17 @@ function load_all_accelerators(accelerators::Vector{AbstractAccelerator})   # Ac
                     continue
                 end
 
-                    instance = accelerator_type()
-        
-                    if !has_driver(instance)
-                        @error "Driver not present for $structname."
-                        continue
-                    end
-        
-                    discover_accelerator(accelerators, instance)
+                # Create Accelerator instance by calling the default constructor
+                accelerator_instance = accelerator_type()
+    
+                if !has_driver(accelerator_instance)
+                    @warn "Driver not present for $structname."
+                    continue
+                end
+    
+                discover_accelerator(accelerators, accelerator_instance)
             catch e
-                @error "Error loading accelerator from file '$file': $e"
+                @warn "Error loading accelerator from file '$file': $e"
             end
         end
     end
