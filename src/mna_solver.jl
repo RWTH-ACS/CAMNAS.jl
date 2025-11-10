@@ -41,24 +41,24 @@ It selects the first available GPU-based accelerator, if none are available it f
 """
 function determine_accelerator(strategy::DefaultStrategy, accelerators_vector::Vector{AbstractAccelerator})
     global current_strategy = strategy
-    allowed = Vector{AbstractAccelerator}()
+    allowed_accelerators = Vector{AbstractAccelerator}()
 
     # This really doesnt seem nice
     if varDict["allow_gpu"]
-        allowed = filter(x -> typeof(x) != NoAccelerator, accelerators_vector)
+        allowed_accelerators = filter(x -> typeof(x) != NoAccelerator, accelerators_vector)
     end
 
     if varDict["allow_cpu"]
-        push!(allowed, accelerators_vector[findfirst(x -> typeof(x) == NoAccelerator, accelerators_vector)])
+        push!(allowed_accelerators, accelerators_vector[findfirst(x -> typeof(x) == NoAccelerator, accelerators_vector)])
     end
 
-    if isempty(allowed)
+    if isempty(allowed_accelerators)
         @error "No accelerators available for selection."
         return nothing
     end
 
-    idx = 1         # choose first accelerator from the available accelerators_vector
-    set_current_accelerator!(allowed[idx])
+    idx = 1 # choose first accelerator from the available accelerators_vector
+    set_current_accelerator!(allowed_accelerators[idx])
     @debug "DefaultStrategy selected, using $(accelerators_vector[idx])"
 end
 
@@ -81,7 +81,7 @@ function determine_accelerator(strategy::LowestPowerStrategy, accelerators_vecto
     global accelerators_vector
     global current_strategy = strategy
 
-    allowed = Vector{AbstractAccelerator}()
+    allowed_accelerators = Vector{AbstractAccelerator}()
 
     if !varDict["allow_gpu"] && !varDict["allow_cpu"]
         @error "Nothing allowed"
@@ -90,20 +90,20 @@ function determine_accelerator(strategy::LowestPowerStrategy, accelerators_vecto
 
     # This really doesnt seem nice
     if varDict["allow_gpu"]
-        allowed = filter(x -> typeof(x) != NoAccelerator, accelerators_vector)
+        allowed_accelerators = filter(x -> typeof(x) != NoAccelerator, accelerators_vector)
     end
 
     if varDict["allow_cpu"]
-        push!(allowed, accelerators_vector[findfirst(x -> typeof(x) == NoAccelerator, accelerators_vector)])
+        push!(allowed_accelerators, accelerators_vector[findfirst(x -> typeof(x) == NoAccelerator, accelerators_vector)])
     end
 
-    if isempty(allowed)
+    if isempty(allowed_accelerators)
         @error "No accelerators available for selection."
         return nothing
     end
 
-    value, index = findmin(x -> x.properties.power_watts, allowed)
-    set_current_accelerator!(allowed[index])
+    value, index = findmin(x -> x.properties.power_watts, allowed_accelerators)
+    set_current_accelerator!(allowed_accelerators[index])
 end
 
 """
@@ -114,9 +114,7 @@ The HighestPerfStrategy selects the accelerator with the highest performance ind
 function determine_accelerator(strategy::HighestPerfStrategy, accelerators_vector::Vector{AbstractAccelerator})
     global accelerators_vector
     global current_strategy = strategy
-    # available = filter(x -> x.properties.availability, accelerators_vector)
-    # value, index = findmax(x -> x.properties.perf, available)
-    allowed = Vector{AbstractAccelerator}()
+    allowed_accelerators = Vector{AbstractAccelerator}()
 
     if !varDict["allow_gpu"] && !varDict["allow_cpu"]
         @error "Nothing allowed"
@@ -125,20 +123,20 @@ function determine_accelerator(strategy::HighestPerfStrategy, accelerators_vecto
 
     # This really doesnt seem nice
     if varDict["allow_gpu"]
-        allowed = filter(x -> typeof(x) != NoAccelerator, accelerators_vector)
+        allowed_accelerators = filter(x -> typeof(x) != NoAccelerator, accelerators_vector)
     end
     
     if varDict["allow_cpu"]
-        push!(allowed, accelerators_vector[findfirst(x -> typeof(x) == NoAccelerator, accelerators_vector)])
+        push!(allowed_accelerators, accelerators_vector[findfirst(x -> typeof(x) == NoAccelerator, accelerators_vector)])
     end
 
-    if isempty(allowed)
+    if isempty(allowed_accelerators)
         @error "No accelerators available for selection."
         return nothing
     end
 
-    value, index = findmax(x -> x.properties.performanceIndicator, allowed)
-    set_current_accelerator!(allowed[index])
+    value, index = findmax(x -> x.properties.performanceIndicator, allowed_accelerators)
+    set_current_accelerator!(allowed_accelerators[index])
 end
 
 function find_accelerator()
@@ -270,14 +268,10 @@ function evaluate_system_environment(content)
         elseif varDict["allow_gpu"] 
             idx = findfirst(x -> typeof(x) != NoAccelerator, accelerators_vector)   
             set_current_accelerator!(accelerators_vector[idx])
-            @debug "No strategy selected, using NoStrategy"
-            determine_accelerator(NoStrategy(), accelerators_vector)
         
         elseif varDict["allow_cpu"]
             idx = findfirst(x -> x.name == "cpu", accelerators_vector)
             typeof(current_accelerator) == NoAccelerator || set_current_accelerator!(accelerators_vector[idx])
-            @debug "No strategy selected, using NoStrategy"
-            determine_accelerator(NoStrategy(), accelerators_vector)
         
         # NOTHING ALLOWED
         else
