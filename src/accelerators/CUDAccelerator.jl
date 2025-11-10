@@ -5,19 +5,14 @@ using CUDA
 using CUDA.CUSPARSE
 using CUSOLVERRF
 
-using Printf
-
 struct CUDAccelerator <: AbstractAccelerator 
     name::String
     properties::AcceleratorProperties
     device::CuDevice
 
-
     function CUDAccelerator(name::String = "cuda", dev::CuDevice = CUDA.device() , properties=AcceleratorProperties(true, 1, 1.0, floatmax()))
         new(name, properties, dev)
     end
-
-
 end
 
 struct CUDAccelerator_LUdecomp <: AbstractLUdecomp 
@@ -35,11 +30,6 @@ function has_driver(accelerator::CUDAccelerator)
 end
 
 function discover_accelerator(accelerators::Vector{AbstractAccelerator}, accelerator::CUDAccelerator) 
-    # if !has_driver(accelerator) 
-    #     @warn "CUDA driver not found: $e. Skipping CUDA accelerator discovery."
-    #     return
-    # end
-
     devices = collect(CUDA.devices())   # Vector of CUDA devices 
     @debug "Found $(length(devices)) CUDA devices"
 
@@ -58,7 +48,6 @@ function mna_decomp(sparse_mat, accelerator::CUDAccelerator)
     @debug "Calculating on $(accelerator.name)"
     matrix = CuSparseMatrixCSR(CuArray(sparse_mat)) # Sparse GPU implementation
     lu_decomp = CUSOLVERRF.RFLU(matrix; symbolic=:RF) |> CUDAccelerator_LUdecomp
-
 
     return lu_decomp
 end
@@ -117,9 +106,9 @@ function set_acceleratordevice!(acc::CUDAccelerator)
         return
     end
 
-
     @debug "Setting CUDA device to $(acc.device) on Thread $(Threads.threadid())"
     CUDA.device!(acc.device)
+    
     @debug "Current CUDA device is now $(CUDA.device())"
 end
 
@@ -129,7 +118,7 @@ function map_CuDevice_to_nvidiasmi()
     for i in 0:length(CUDA.devices()) - 1
         dev = CuDevice(i)
         pci = CUDA.attribute(dev, CUDA.DEVICE_ATTRIBUTE_PCI_BUS_ID)
-        pci_hex = @sprintf("%02x" , pci) |> uppercase
+        pci_hex = string(pci, base=16) |> uppercase
         cuda_devices[i] = pci_hex
     end
 
