@@ -51,6 +51,10 @@ accelerator_files = Vector()
 read(`pwd`, String)
 for file in readdir(dirname(@__FILE__), join=true)
     if endswith(file, ".jl") && basename(file) != "Accelerators.jl" && basename(file) ∉ accelerator_files
+        if startswith(basename(file), "_")
+            @debug "Ignoring (\"_\"-prefixed) file $file" 
+            continue
+        end
         @debug "file found $file"
         push!(accelerator_files, basename(file))
         include(basename(file))
@@ -60,36 +64,34 @@ end
 
 function load_all_accelerators(accelerators::Vector{AbstractAccelerator})   # Accelerator structs are called like the .jl file
     global accelerator_files
-    if isempty(accelerators)
-        for file in accelerator_files
-            structname = split(file, ".")[1]
-            symbol =  Symbol(structname)
+    for file in accelerator_files
+        structname = split(file, ".")[1]
+        symbol =  Symbol(structname)
 
-            try
-                if !isdefined(Accelerators, symbol)
-                    @warn "No struct named '$structname' found in module Accelerators."
-                    continue
-                end
-
-                accelerator_type = getfield(Accelerators, symbol)
-
-                if !isdefined(@__MODULE__, :discover_accelerator)
-                    @warn "No function `discover_accelerator` defined for file '$file'."
-                    continue
-                end
-
-                # Create Accelerator instance by calling the default constructor
-                accelerator_instance = accelerator_type()
-    
-                if !has_driver(accelerator_instance)
-                    @warn "Driver not present for $structname."
-                    continue
-                end
-    
-                discover_accelerator(accelerators, accelerator_instance)
-            catch e
-                @warn "Error loading accelerator from file '$file': $e"
+        try
+            if !isdefined(Accelerators, symbol)
+                @warn "No struct named '$structname' found in module Accelerators."
+                continue
             end
+
+            accelerator_type = getfield(Accelerators, symbol)
+
+            if !isdefined(@__MODULE__, :discover_accelerator)
+                @warn "No function `discover_accelerator` defined for file '$file'."
+                continue
+            end
+
+            # Create Accelerator instance by calling the default constructor
+            accelerator_instance = accelerator_type()
+
+            if !has_driver(accelerator_instance)
+                @warn "Driver not present for $structname."
+                continue
+            end
+
+            discover_accelerator(accelerators, accelerator_instance)
+        catch e
+            @warn "Error loading accelerator from file '$file': $e"
         end
     end
 end
