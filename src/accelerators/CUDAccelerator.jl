@@ -123,18 +123,29 @@ function get_tdp(accelerator::CUDAccelerator)
 end
 
 
-function set_acceleratordevice!(acc::CUDAccelerator)
+function set_acceleratordevice!(accelerator::CUDAccelerator)
     # This function is used to set the CUDA device for the current thread
     # It is called by the CAMNAS.jl module to ensure that the correct device is used
-    if acc.device == CUDA.device()
-        @debug "CUDA device $(acc.device) is already set on Thread $(Threads.threadid())"
+    if accelerator.device == CUDA.device()
+        @debug "CUDA device $(accelerator.device) is already set on Thread $(Threads.threadid())"
         return
     end
 
-    @debug "Setting CUDA device to $(acc.device) on Thread $(Threads.threadid())"
-    CUDA.device!(acc.device)
+    old_device = CUDA.device()
+    @debug "Setting CUDA device to $(accelerator.device) on Thread $(Threads.threadid())"
+    @debug "Previous device was $(old_device)"
+    @debug "Extracting LU decomposition from device $(old_device)"
     
+    idx = findfirst(x-> typeof(x) == CUDAccelerator_LUdecomp, CAMNAS.system_matrix)
+    cuda_lu = system_matrix_dev2host(CAMNAS.system_matrix[idx])
+
+    # Switch to new CUDA device
+    CUDA.device!(accelerator.device)
     @debug "Current CUDA device is now $(CUDA.device())"
+
+    # Recreate LU decompositions on the new device
+    CAMNAS.system_matrix[idx] = mna_decomp(cuda_lu, accelerator)
+    @debug "Successfully migrated LU decomposition to device $(accelerator.device)"
 end
 
 function map_CuDevice_to_nvidiasmi()
@@ -168,4 +179,18 @@ function map_CuDevice_to_nvidiasmi()
     end
 
     return mapping
+end
+
+function system_matrix_dev2host(cuda_lu::CUDAccelerator_LUdecomp) #transfer LU factorization from CUSOLVERRF.RFLU to SparseArrays.UMFPACK.UMFPACKLU type
+    # Access combined LU matrix (GPU, CSR format)
+    M_gpu = cuda_lu.lu_decomp.M
+
+    rowPtr = collect(M_gpu.rowPtr)
+    colVal = collect(M_gpu.colVal)
+    nzVal = collect(M_gpu.nzVal)
+    nrow = size(M_gpu, 1)
+    ncol = size(M_gpu, 2)
+
+    M_cpu = SparseMatrixCSR{1}(nrow, ncol, rowPtr, colVal, nzVal) # 1 indicates index base
+    return  M_cpu
 end

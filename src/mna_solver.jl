@@ -382,6 +382,7 @@ function mna_solve(my_system_matrix, rhs)
         println(typeof(current_accelerator))
         : nothing)
     
+    Accelerators.set_acceleratordevice!(current_accelerator)        # sets the ACTUAL physical accelerator device
     idx = findfirst(x -> typeof(x) == get_ludecomp_type(current_accelerator), my_system_matrix) 
 
     
@@ -395,28 +396,8 @@ function mna_solve(my_system_matrix, rhs)
         sys_mat = my_system_matrix[idx]
     end
 
-    Accelerators.set_acceleratordevice!(current_accelerator)        # sets the ACTUAL physical accelerator device
 
     @debug "Using system matrix of type $(typeof(sys_mat)) for solving."
     return Accelerators.mna_solve(sys_mat, rhs, current_accelerator)
 end
 mna_solve(system_matrix, rhs, accelerator::DummyAccelerator) = mna_solve(system_matrix, rhs, NoAccelerator())
-
-function transfer_LU_CUDA2CPU(cuda_lu::CUDAccelerator_LUdecomp) #transfer LU factorization from CUSOLVERRF.RFLU to SparseArrays.UMFPACK.UMFPACKLU type
-    # Access combined LU matrix (GPU, CSR format)
-    M_gpu = cuda_lu.lu_decomp.M    # M = L + U
-    
-    rowPtr = collect(M_gpu.rowPtr)
-    colVal = collect(M_gpu.colVal)
-    nzVal = collect(M_gpu.nzVal)
-
-    nrow = size(M_gpu, 1)
-    ncol = size(M_gpu, 2)
-
-    # Construct CPU-side sparse matrix in CSR format
-    M_cpu = SparseMatrixCSR{1}(nrow, ncol, rowPtr, colVal, nzVal)   # 1 indicates index base
-    cpu_lu_decomp = SparseArrays.lu(M_cpu) |> NoAccelerator_LUdecomp
-    
-    @debug "Type of lu_decomp is $(typeof(lu_decomp))"
-    return cpu_lu_decomp
-end
