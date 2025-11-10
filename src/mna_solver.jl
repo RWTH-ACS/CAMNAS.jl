@@ -40,7 +40,6 @@ The default strategy implements a GPU first approach.
 It selects the first available GPU-based accelerator, if none are available it falls back to the CPU.
 """
 function determine_accelerator(strategy::DefaultStrategy, accelerators_vector::Vector{AbstractAccelerator})
-    # sort vector of accelerators to a specific order and then choose the first available
     global current_strategy = strategy
     allowed = Vector{AbstractAccelerator}()
 
@@ -63,12 +62,21 @@ function determine_accelerator(strategy::DefaultStrategy, accelerators_vector::V
     @debug "DefaultStrategy selected, using $(accelerators_vector[idx])"
 end
 
+"""
+    determine_accelerator(strategy::NoStrategy, accelerators_vector::Vector{AbstractAccelerator}) -> Nothing
+
+The NoStrategy does not change the current accelerator.
+"""
 function determine_accelerator(strategy::NoStrategy, accelerators_vector::Vector{AbstractAccelerator})
-    # sort vector of accelerators to a specific order and then choose the first available
     global current_strategy = strategy
     @debug "NoStrategy selected"
 end
 
+"""
+    determine_accelerator(strategy::LowestPowerStrategy, accelerators_vector::Vector{AbstractAccelerator}) -> Nothing
+
+The LowestPowerStrategy selects the accelerator with the lowest power consumption property, defined in AcceleratorProperties.
+"""
 function determine_accelerator(strategy::LowestPowerStrategy, accelerators_vector::Vector{AbstractAccelerator})
     global accelerators_vector
     global current_strategy = strategy
@@ -98,6 +106,11 @@ function determine_accelerator(strategy::LowestPowerStrategy, accelerators_vecto
     set_current_accelerator!(allowed[index])
 end
 
+"""
+    determine_accelerator(strategy::HighestPerfStrategy, accelerators_vector::Vector{AbstractAccelerator}) -> Nothing
+
+The HighestPerfStrategy selects the accelerator with the highest performance indicator property, defined in AcceleratorProperties.
+"""
 function determine_accelerator(strategy::HighestPerfStrategy, accelerators_vector::Vector{AbstractAccelerator})
     global accelerators_vector
     global current_strategy = strategy
