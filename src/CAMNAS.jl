@@ -7,8 +7,6 @@ export systemCheck
 
 using SparseMatricesCSR
 
-using CUDA
-
 include("mna_solver.jl")
 
 

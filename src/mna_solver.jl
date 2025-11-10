@@ -1,9 +1,6 @@
 using SparseArrays
-using CUDA.CUSPARSE
-using CUSOLVERRF
 using LinearAlgebra
 using FileWatching
-using TOML
 
 include("accelerators/Accelerators.jl")
 include("config.jl")
@@ -272,7 +269,7 @@ function evaluate_system_environment(content)
             @info "[CAMNAS] Currently used strategy: $(typeof(current_strategy))"
         end
     else
-        @debug "Runtime switch is disabled, Accelerator will not be changed."
+        @warn "Runtime switch is disabled, Accelerator will not be changed."
     end
 end    
 
