@@ -24,7 +24,6 @@ end
     Struct needs to be a subtype of `AbstractLUdecomp` and Structname has to be the same as file name with `_LUdecomp` suffix.
     with `lu_decomp` field.
 """
-
 struct exampleAccelerator_LUdecomp <: AbstractLUdecomp
     lu_decomp::LinearAlgebra.TransposeFactorization
 end

@@ -11,6 +11,23 @@ using BenchmarkTools
 abstract type AbstractAccelerator end
 abstract type AbstractLUdecomp end
 
+"""
+    AcceleratorProperties(availability::Bool, priority::Int64, performanceIndicator::Float64, power_watts::Float64)
+
+Struct describing static properties of an accelerator device.
+
+Fields
+- `availability::Bool` : whether the device is currently available
+- `priority::Int64` : integer priority used by higher-level selection policies
+- `performanceIndicator::Float64` : measured or estimated peak performance in GFLOP/s (giga-FLOP/s).
+- `power_watts::Float64` : device power consumption (TDP) in watts.
+- `energy_efficiency::Float64` : derived value equal to `performanceIndicator / power_watts` (rounded to 4 digits).
+
+Example
+```
+props = AcceleratorProperties(true, 1, 512.0, 200.0) # 512 GFLOP/s, 200 W
+```
+"""
 struct AcceleratorProperties
     availability::Bool
     priority::Int64
@@ -25,7 +42,6 @@ struct AcceleratorProperties
     function AcceleratorProperties()
         new(true, 1, 1.0, 1.0, 1.0)
     end
-
 end
 
 # not in function on purpose, otherwise scope issue with include statements
@@ -121,14 +137,13 @@ function get_tdp(accelerator::AbstractAccelerator)
     return floatmax(Float64)
 end
 
-
 """
+    set_acceleratordevice!(accelerator::AbstractAccelerator) -> Nothing
+
 Set the accelerator device for the given accelerator.
 This function needs to be implemented in case there are multiple accelerator devices of the same type.
 """
-function set_acceleratordevice!(accelerator::AbstractAccelerator)
-    #@warn "set_acceleratordevice not implemented or necessary for $(typeof(accelerator))"
-end
+function set_acceleratordevice!(accelerator::AbstractAccelerator) end
 
 # Get the FLOPs of the accelerator from a file or benchmark and save to file.
 function getPerformanceIndicator(accelerator::AbstractAccelerator)
@@ -144,13 +159,13 @@ function getPerformanceIndicator(accelerator::AbstractAccelerator)
                     parts = split(line)
                     if length(parts) >= 2
                         perf = parse(Float64, parts[end]) 
-                        @debug "Performance Infication found for $(accelerator.name): $perf, skip benchmarking"
+                        @debug "Performance Indicator found for $(accelerator.name): $perf, skip benchmarking"
                         break
                     end
                 end
             end
         end
-        if perf === nothing   # Performance Infication not found for this accelerator
+        if perf === nothing   # Performance Indicator not found for this accelerator
             perf = estimate_perf(accelerator)
             open(filepath, "a") do file
                 println(file, "$(accelerator.name) $perf")
@@ -164,6 +179,5 @@ function getPerformanceIndicator(accelerator::AbstractAccelerator)
     end
 
     return perf
-
 end
 end # Accelerators module

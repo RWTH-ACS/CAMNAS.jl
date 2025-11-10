@@ -7,12 +7,9 @@ struct MetalAccelerator <: AbstractAccelerator
     name::String
     properties::AcceleratorProperties
 
-
     function MetalAccelerator(name::String = "metal", properties=AcceleratorProperties(true, 1, 1.0, floatmax()))
         new(name, properties)
     end
-
-
 end
 
 # DenseMatrix since Sparse Matrix support for Metal.jl is not implemented yet.
@@ -54,10 +51,7 @@ function estimate_perf(accelerator::MetalAccelerator;
     B = Metal.mtl(ones(inT, n, n))
     C = Metal.mtl(zeros(ouT, n, n))
 
-    
-    
     min_time = @belapsed Metal.@sync mul!(C, A, B)
-
 
     flops = 2 * n^3 - n^2
     gflops = flops / (min_time * 1e9)
@@ -109,5 +103,4 @@ function mna_solve(system_matrix::MetalAccelerator_LUdecomp, rhs, accelerator::M
     # CPU solve step
     # lu_decomp = Matrix(system_matrix.lu_decomp)
     # return system_matrix.lu_decomp \ rhs
-
 end

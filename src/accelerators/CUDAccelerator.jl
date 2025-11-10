@@ -4,7 +4,21 @@ export discover_accelerator, mna_decomp, mna_solve
 using CUDA
 using CUDA.CUSPARSE
 using CUSOLVERRF
+using SparseMatricesCSR
 
+"""
+    CUDAccelerator <: AbstractAccelerator
+
+Concrete accelerator type representing an NVIDIA CUDA-capable GPU device for CAMNAS.
+
+This struct wraps a CUDA device and its associated properties (performance, power, etc.) for use
+by CAMNAS.jl accelerator selection logic.
+
+# Fields
+- `name::String` : human-readable device name (e.g., "NVIDIA GeForce RTX 3090").
+- `properties::AcceleratorProperties` : measured or estimated performance and power characteristics.
+- `device::CuDevice` : the underlying CUDA device handle.
+"""
 struct CUDAccelerator <: AbstractAccelerator 
     name::String
     properties::AcceleratorProperties
@@ -15,6 +29,17 @@ struct CUDAccelerator <: AbstractAccelerator
     end
 end
 
+"""
+    CUDAccelerator_LUdecomp <: AbstractLUdecomp
+
+Wrapper for a GPU LU factorization computed via CUSOLVERRF for sparse matrices.
+
+This struct encapsulates a `CUSOLVERRF.RFLU` object, which holds the refactorized LU decomposition
+on the GPU.
+
+# Fields
+- `lu_decomp::CUSOLVERRF.RFLU` : the GPU-resident LU factorization object.
+"""
 struct CUDAccelerator_LUdecomp <: AbstractLUdecomp 
     lu_decomp::CUSOLVERRF.RFLU
 end

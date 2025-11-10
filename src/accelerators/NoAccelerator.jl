@@ -5,12 +5,9 @@ struct NoAccelerator <: AbstractAccelerator
     name::String
     properties::AcceleratorProperties
     
-
     function NoAccelerator(name::String = "cpu", properties=AcceleratorProperties(true, 1, 1.0, floatmax()))
         new(name, properties)
     end
-
-
 end
 struct NoAccelerator_LUdecomp <: AbstractLUdecomp 
     lu_decomp::LinearAlgebra.TransposeFactorization
