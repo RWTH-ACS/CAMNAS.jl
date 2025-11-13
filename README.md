@@ -19,7 +19,7 @@ make
 
 ## Dependencies
 Build Depedencies:
-- `julia>=1.10`
+- `julia>=1.11`
 - `gcc`
 - `make`
 - ...
@@ -42,15 +42,24 @@ Certain features and behavior patterns of the solver can be managed through envi
 | Variable | Values [default] | [TYPE] Description | 
 | :--: | :--: | :-- |
 |JL_MNA_DISABLE_AWARENESS|Boolean [false]| [CONTROL] Toggle accelerater detection/awareness. When disabled, calculations will always fallback to CPU.|
-|JL_MNA_ALLOW_CPU|Boolean [true]| [CONTROL] Allow accelerator selection to use CPU. |
-|JL_MNA_ALLOW_GPU|Boolean [true]|[CONTROL] Allow accelerator selection to use CPU. |
-|JL_MNA_FORCE_CPU|Boolean [false]|[CONTROL] *Currently unused...* |
-|JL_MNA_FORCE_GPU|Boolean [false]|[CONTROL] *Currently unused...*|
+|JL_MNA_RUNTIME_SWITCH|Boolean [false]| [CONTROL] Allow migration between accelerators during runtime.|
+|| **Allow Accelerator Types** ||
+|JL_MNA_ALLOW_CPU|Boolean [true]|[CONTROL] Allow accelerator selection to use CPU. |
+|JL_MNA_ALLOW_GPU|Boolean [true]|[CONTROL] Allow accelerator selection to use GPU. |
+|| **Accelerator Forcing** ||
+|JL_MNA_FORCE_CPU|Boolean [false]|[CONTROL] Forces the use of CPU. **Ignores other strategies!** |
+|JL_MNA_FORCE_GPU|Boolean [false]|[CONTROL] Forces the use of GPU. **Ignores other strategies!** |
+|| **Accelerator Selection Strategies** ||
+|JL_MNA_ALLOW_STRATEGIES|Boolean [true]|[CONTROL] Allows the plugin to use strategies for opinionated accelerator selection. |
+|JL_MNA_LOWER_POWER_STRATEGY|Boolean [false]|[CONTROL] Selects accelerator with lowest estimated power consumption (**based on TDP values**).|
+|JL_MNA_HIGEHEST_FLOP_STRATEGY|Boolean [false]|[CONTROL] Selects accelerator with highest estimated FLOPs value.|
+|JL_MNA_SPECIFIC_ACCELERATOR_STRATEGY|Boolean [false]|[CONTROL] Selects accelerator specified by `JL_MNA_SPECIFIC_ACCELERATOR`.|
+|JL_MNA_SPECIFIC_ACCELERATOR|Boolean [nothing]|[CONTROL] Name of the accelerator to select. (Requires `JL_MNA_SPECIFIC_ACCELERATOR_STRATEGY`)|
+||**Utils**||
 |JL_MNA_PRINT_ACCELERATOR| Boolean [false]| [DEBUG] Print currently used accelerator independent from debug statements.|
 
 > [!Warning]
-> To modify the plugin's behavior interactively during runtime (e.g., dynamically switching accelerators between timesteps), users can edit the automatically generated `system.env` file. However, this feature is still experimental and therefore not recommended and requires to set the optional ENV variable `JL_MNA_RUNTIME_SWITCH` before loading CAMNAS.
-
+> To modify the plugin's behavior interactively during runtime (e.g., dynamically switching accelerators between timesteps), users can edit the automatically generated `system.env` file, or directly modify CAMNAS internal variables using `CAMNAS.update_varDict!(key,value)`. However, this feature is still experimental, therefore not recommended, and requires to set the optional ENV variable `JL_MNA_RUNTIME_SWITCH` before loading CAMNAS.
 
 ## Development / Testing
 Developing or testing a shared library or plugin can be tideous, especially due to long compilations times. However, the purely Julia script `test/test_interface.jl` comes to your help!
