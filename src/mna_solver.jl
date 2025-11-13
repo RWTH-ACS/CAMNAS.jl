@@ -14,6 +14,7 @@ struct DefaultStrategy <: AbstractSelectionStrategy end #choose first accelerato
 struct LowestPowerStrategy <: AbstractSelectionStrategy end
 struct HighestPerfStrategy <: AbstractSelectionStrategy end
 struct NoStrategy <: AbstractSelectionStrategy end
+struct SpecificAcceleratorStrategy <: AbstractSelectionStrategy end
 
 # Vector of available accelerators
 global accelerators_vector = Vector{AbstractAccelerator}()
@@ -28,7 +29,6 @@ global system_matrix = Vector{AbstractLUdecomp}()
 Falling back to DefaultStrategy if no specific strategy is implemented.
 """
 function determine_accelerator(strategy::AbstractSelectionStrategy, accelerators_vector::Vector{AbstractAccelerator})
-    global accelerators_vector
     @debug "Strategy not implemented, falling back to DefaultStrategy"
     determine_accelerator(DefaultStrategy(), accelerators_vector)
 end
@@ -40,7 +40,6 @@ The default strategy implements a GPU first approach.
 It selects the first available GPU-based accelerator, if none are available it falls back to the CPU.
 """
 function determine_accelerator(strategy::DefaultStrategy, accelerators_vector::Vector{AbstractAccelerator})
-    global current_strategy = strategy
     allowed_accelerators = Vector{AbstractAccelerator}()
 
     # This really doesnt seem nice
@@ -68,7 +67,6 @@ end
 The NoStrategy does not change the current accelerator.
 """
 function determine_accelerator(strategy::NoStrategy, accelerators_vector::Vector{AbstractAccelerator})
-    global current_strategy = strategy
     @debug "NoStrategy selected"
 end
 
@@ -78,9 +76,6 @@ end
 The LowestPowerStrategy selects the accelerator with the lowest power consumption property, defined in AcceleratorProperties.
 """
 function determine_accelerator(strategy::LowestPowerStrategy, accelerators_vector::Vector{AbstractAccelerator})
-    global accelerators_vector
-    global current_strategy = strategy
-
     allowed_accelerators = Vector{AbstractAccelerator}()
 
     if !varDict["allow_gpu"] && !varDict["allow_cpu"]
@@ -112,8 +107,6 @@ end
 The HighestPerfStrategy selects the accelerator with the highest performance indicator property, defined in AcceleratorProperties.
 """
 function determine_accelerator(strategy::HighestPerfStrategy, accelerators_vector::Vector{AbstractAccelerator})
-    global accelerators_vector
-    global current_strategy = strategy
     allowed_accelerators = Vector{AbstractAccelerator}()
 
     if !varDict["allow_gpu"] && !varDict["allow_cpu"]
@@ -138,6 +131,25 @@ function determine_accelerator(strategy::HighestPerfStrategy, accelerators_vecto
     value, index = findmax(x -> x.properties.performanceIndicator, allowed_accelerators)
     set_current_accelerator!(allowed_accelerators[index])
 end
+
+function determine_accelerator(strategy::SpecificAcceleratorStrategy, accelerators_vector::Vector{AbstractAccelerator})
+    specific_acc_name = varDict["specific_accelerator"]
+
+    if specific_acc_name === nothing
+        @error "No specific accelerator name provided in 'specific_accelerator' variable."
+        return nothing
+    end
+
+    idx = findfirst(x -> x.name == specific_acc_name, accelerators_vector)
+    if idx === nothing
+        @error "Specified accelerator '$specific_acc_name' not found among available accelerators."
+        return nothing
+    end
+
+    set_current_accelerator!(accelerators_vector[idx])
+    @debug "SpecificAcceleratorStrategy selected, using $(accelerators_vector[idx])"
+end
+
 
 function find_accelerator()
     global accelerators_vector
@@ -210,15 +222,11 @@ function evaluate_system_environment(content)
         if length(line) == 0
             continue
         end
-        key, value = split(line)
-        if key == "allow_cpu"
-            allow_cpu = parse(Bool, value)
-            varDict["allow_cpu"] = allow_cpu
-        elseif key == "allow_gpu"
-            allow_gpu = parse(Bool, value)
-            varDict["allow_gpu"] = allow_gpu
-        else
+        key, value = split(line; limit=2)
+        try
             varDict[key] = parse(Bool, value)
+        catch ArgumentError
+            varDict[key] = value
         end
     end
 
@@ -228,7 +236,7 @@ function evaluate_system_environment(content)
 
     # Currently, force statments are the strongest, then consider strategies
     if varDict["runtime_switch"] || first_run
-   
+
         # FORCING
         if varDict["force_cpu"] || varDict["force_gpu"]
             if varDict["force_cpu"] && varDict["force_gpu"]
@@ -251,19 +259,25 @@ function evaluate_system_environment(content)
         elseif varDict["allow_strategies"]
             if varDict["highest_flop_strategy"] && varDict["lowest_power_strategy"]
                 @debug "Too many Stragegies set! Only one can be used at a time."
-                determine_accelerator(DefaultStrategy(), accelerators_vector)    
+                current_strategy = DefaultStrategy()
 
             elseif varDict["highest_flop_strategy"]
                 @debug "Selected HighestPerfStrategy"
-                determine_accelerator(HighestPerfStrategy(), accelerators_vector)
+                current_strategy = HighestPerfStrategy()
             
             elseif varDict["lowest_power_strategy"] 
                 @debug "Selected LowestPowerStrategy"
-                determine_accelerator(LowestPowerStrategy(), accelerators_vector)
+                current_strategy = LowestPowerStrategy()
+
+            elseif varDict["specific_accelerator_strategy"]
+               @debug "Selected SpecificAcceleratorStrategy"
+               current_strategy = SpecificAcceleratorStrategy()
+
             else
                 @debug "Selected DefaultStrategy"
-                determine_accelerator(DefaultStrategy(), accelerators_vector)
+                current_strategy = DefaultStrategy()
             end
+            determine_accelerator(current_strategy, accelerators_vector)
 
         elseif varDict["allow_gpu"] 
             idx = findfirst(x -> typeof(x) != NoAccelerator, accelerators_vector)   
