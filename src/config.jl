@@ -44,3 +44,20 @@ function parse_env_vars()
 
     return varDict
 end
+
+function update_varDict!(key::String, value)
+    varDict[key] = value
+    create_env_file()
+end
+
+function update_varDict!(keys::Vector{String}, values::Vector)
+    if length(keys) != length(values)
+        @error "Length of keys and values must match. Got $(length(keys)) keys and $(length(values)) values."
+        return
+    end
+
+    for (k, v) in zip(keys, values)
+        varDict[k] = v
+    end
+    create_env_file()
+end
