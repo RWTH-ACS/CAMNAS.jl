@@ -150,7 +150,6 @@ function determine_accelerator(strategy::SpecificAcceleratorStrategy, accelerato
     @debug "SpecificAcceleratorStrategy selected, using $(accelerators_vector[idx])"
 end
 
-
 function find_accelerator()
     global accelerators_vector
     try
@@ -306,6 +305,11 @@ end
 function set_current_accelerator!(acc::AbstractAccelerator) 
     @debug "Setting current accelerator to: $(typeof(acc))"
     global current_accelerator = acc
+end
+
+function hasAccelerator(accelerator::T) where T <:AbstractAccelerator
+    global accelerators_vector
+    findfirst(x -> typeof(x) == typeof(accelerator), accelerators_vector) !== nothing
 end
 
 # Housekeeping
