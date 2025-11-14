@@ -53,14 +53,7 @@ function update_varDict!(key::String, value)
     create_env_file()
 end
 
-function update_varDict!(keys::Vector{String}, values::Vector)
-    if length(keys) != length(values)
-        @error "Length of keys and values must match. Got $(length(keys)) keys and $(length(values)) values."
-        return
-    end
-
-    for (k, v) in zip(keys, values)
-        varDict[k] = v
-    end
+function update_varDict!(updates::Dict{String, <:Any})
+    merge!(varDict, updates)
     create_env_file()
 end
