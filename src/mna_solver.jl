@@ -210,6 +210,7 @@ function determine_accelerator()
 end
 
 function evaluate_system_environment(content)
+    global current_strategy
     first_run = false
     if(content === nothing)
         @debug "Setting up: Reading ENV for the first time"
