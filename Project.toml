@@ -1,7 +1,7 @@
 name = "CAMNAS"
 uuid = "0b880eee-5bea-49e4-84ce-93e95af8a2a0"
+version = "0.2.0"
 authors = ["Felix Wege <fwege@eonerc.rwth-aachen.de>"]
-version = "0.1.0"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
@@ -10,7 +10,6 @@ CUSOLVERRF = "a8cc9031-bad2-4722-94f5-40deabb4245c"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 FileWatching = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-LinearSolve = "7ed4a6bd-45f5-4d41-b270-4a48e9bafcae"
 Metal = "dde4c033-4e86-420c-a63e-0dd931031962"
 PackageCompiler = "9b87118b-4619-50d2-8e1e-99f35a4d4d9d"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
