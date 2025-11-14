@@ -58,11 +58,12 @@ function discover_accelerator(accelerators::Vector{AbstractAccelerator}, acceler
     devices = collect(CUDA.devices())   # Vector of CUDA devices 
     @debug "Found $(length(devices)) CUDA devices"
 
-    for dev in devices 
-        cuda_acc = CUDAccelerator(CUDA.name(dev), dev)
+    for device in devices
+        device_name = CUDA.name(device)*"($(device.handle))"
+        cuda_acc = CUDAccelerator(device_name, device)
         power_limit = get_tdp(cuda_acc)
         cuda_perf = getPerformanceIndicator(cuda_acc)
-        cuda_acc = CUDAccelerator(CUDA.name(dev), dev, AcceleratorProperties(true, 1, cuda_perf, power_limit))
+        cuda_acc = CUDAccelerator(device_name, device, AcceleratorProperties(true, 1, cuda_perf, power_limit))
         push!(accelerators, cuda_acc)
     end
     
@@ -162,7 +163,6 @@ function map_CuDevice_to_nvidiasmi()
     smi_output = readlines(`nvidia-smi --query-gpu=index,pci.bus_id --format=csv,noheader`)
     smi_devices = Dict{String, Int}()
     for line in smi_output
-        #isempty(strip(line)) && continue
         idx, pci_full = split(strip(line), ',')
         idx = parse(Int, strip(idx))
         pci_bus_id = strip(pci_full)[10:11]  # extrace "XX" from "00000000:XX:00.0"
