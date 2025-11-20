@@ -7,8 +7,6 @@ export systemCheck
 
 using SparseMatricesCSR
 
-using CUDA
-
 include("mna_solver.jl")
 
 
@@ -49,8 +47,7 @@ Base.@ccallable function init(matrix_ptr::Ptr{dpsim_csr_matrix})::Cint
     mna_init(sparse_mat)
 
     lu_mat = mna_decomp(sparse_mat)
-    @debug lu_mat
-    @debug typeof(lu_mat)
+    #@debug "Current LU factorization: $lu_mat"
     global system_matrix = lu_mat
 
     return 0
@@ -83,7 +80,7 @@ Base.@ccallable function solve(rhs_values_ptr::Ptr{Cdouble}, lhs_values_ptr::Ptr
     @debug @isdefined system_matrix
     (@isdefined system_matrix) || ( error("System matrix not initialized! Call init or decomp first!"); return -1 )
 
-    dim = size(system_matrix[1])[1] # Matrix is quadratic, so we can use m or n
+    dim = size(system_matrix[1].lu_decomp)[1] # Matrix is quadratic, so we can use m or n
     rhs = unsafe_wrap(Array, rhs_values_ptr, dim)
 
     @debug "rhs = $rhs"
@@ -141,4 +138,4 @@ function mat_ctojl(matrix_ptr::Ptr{dpsim_csr_matrix})
 
     return sparse_mat
 end
-end # module
+end # CAMNAS module

@@ -38,5 +38,22 @@ function parse_env_vars()
 
     varDict["runtime_switch"] = env("JL_MNA_RUNTIME_SWITCH", false)
 
+    varDict["allow_strategies"] = env("JL_MNA_ALLOW_STRATEGIES", true)
+    varDict["lowest_power_strategy"] = env("JL_MNA_LOWEST_POWER_STRATEGY", false)
+    varDict["highest_flop_strategy"] = env("JL_MNA_HIGHEST_FLOP_STRATEGY", false)
+    varDict["specific_accelerator_strategy"] = env("JL_MNA_SPECIFIC_ACCELERATOR_STRATEGY", false)
+
+    varDict["specific_accelerator"] = env("JL_MNA_SPECIFIC_ACCELERATOR", nothing)
+
     return varDict
+end
+
+function update_varDict!(key::String, value)
+    varDict[key] = value
+    create_env_file()
+end
+
+function update_varDict!(updates::Dict{String, <:Any})
+    merge!(varDict, updates)
+    create_env_file()
 end
