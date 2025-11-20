@@ -49,5 +49,58 @@ using CAMNAS, Test
         # Restore system matrix values
         sys_mat.values = sys_mat_bak
     end        
+
+    @testset "Generator" begin
+        pre_seed = 1337
+
+        include("Generator.jl")
+        include("MatrixValidator.jl")
+
+        settings = Generator.Settings(
+            dimension=3000,
+            density=0.1,
+            magnitude_off=0.05,
+            delta=0.5,
+            seed=pre_seed
+        )
+
+        matrix = Generator.generate_matrix(settings)
+
+        # Dimensions
+        @test MatrixValidator.is_quadratic(matrix)
+        @test MatrixValidator.m(matrix) == settings.dimension
+        @test MatrixValidator.n(matrix) == settings.dimension
+
+        # Density
+        density = MatrixValidator.density(matrix)
+        @test isapprox(density, settings.density; atol=0.001)
+
+        # Condition
+        condition_tresh = 2
+        @test MatrixValidator.condition(matrix) < condition_tresh
+
+        # LU-decomposability
+        @test MatrixValidator.is_lu_decomposable(matrix)
+
+        # Solving and rhs generation
+        rhs = Generator.generate_rhs_vector(matrix; prefered_solution=ones(Float64, size(matrix, 1)))
+        x = matrix \ rhs
+        tolerance = 1e-8
+        @test all(value -> isapprox(value, 1.0; atol=tolerance), x)
+
+        # Random seed
+        @test matrix == Generator.generate_matrix(settings) # Reproducability
+
+        new_settings = Generator.Settings(
+            dimension=settings.dimension,
+            density=settings.density,
+            magnitude_off=settings.magnitude_off,
+            delta=settings.delta,
+            seed=settings.seed + 1
+        )
+
+        @test matrix != Generator.generate_matrix(new_settings) # Randomness
+
+    end
 end # testset "CAMNAS"
 
