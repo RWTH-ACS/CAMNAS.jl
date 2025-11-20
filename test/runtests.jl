@@ -102,5 +102,28 @@ using CAMNAS, Test
         @test matrix != Generator.generate_matrix(new_settings) # Randomness
 
     end
+
+    @testset "Benchmark" begin
+        pre_seed = 1337
+        include("Benchmark.jl")
+        include("Generator.jl")
+
+        # from files
+        @test Benchmark.benchmark("system_matrix_small.txt", "rhs_small.txt") isa Benchmark.BenchmarkResult
+
+        # generated matrix
+        settings = Generator.Settings(
+            dimension=300,
+            density=0.01,
+            seed=pre_seed
+        )
+        matrix = Generator.generate_matrix(settings)
+        rhs_vector = Generator.generate_rhs_vector(matrix)
+        @test Benchmark.benchmark(matrix, rhs_vector) isa Benchmark.BenchmarkResult
+
+        # CUDA accelerator
+        @test Benchmark.benchmark(matrix, rhs_vector) isa Benchmark.BenchmarkResult skip=!CAMNAS.has_accelerator(CAMNAS.CUDAccelerator())
+
+    end
 end # testset "CAMNAS"
 
