@@ -68,6 +68,8 @@ This script allows testing all externally accessible functions directly within J
 
 To ensure compatibility with DPsim, three test case inputs of different sizes are provided. The specific input size can be adjusted using the `inputSize` variable at the beginning of the script. All inputs are designed to satisfy the equation `x = A \ b`, where `A` is a sparse matrix in CSR format and `b` is a vector.
 
+## Contribution
+We require all commits to be signed-off by the contributer. By doing this, you state that you agree to the terms of the "Developer Certificate of Origin (DCO)" (https://developercertificate.org), for the submitted contribution.
 
 ## Author
 - Felix Wege [fwege@eonerc.rwth-aachen.de](mailto:fwege@eonerc.rwth-aachen.de)
