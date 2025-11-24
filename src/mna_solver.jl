@@ -307,7 +307,7 @@ function set_current_accelerator!(acc::AbstractAccelerator)
     global current_accelerator = acc
 end
 
-function hasAccelerator(accelerator::T) where T <:AbstractAccelerator
+function has_accelerator(accelerator::T) where T <:AbstractAccelerator
     global accelerators_vector
     findfirst(x -> typeof(x) == typeof(accelerator), accelerators_vector) !== nothing
 end
