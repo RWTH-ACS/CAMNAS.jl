@@ -1,5 +1,4 @@
 using CAMNAS, Test
-using Suppressor
 
 @testset "CAMNAS" begin
 
