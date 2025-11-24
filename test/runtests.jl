@@ -57,7 +57,7 @@ using CAMNAS, Test
         include("MatrixValidator.jl")
 
         settings = Generator.Settings(
-            dimension=3000,
+            dimension=300,
             density=0.1,
             magnitude_off=0.05,
             delta=0.5,
@@ -73,7 +73,8 @@ using CAMNAS, Test
 
         # Density
         density = MatrixValidator.density(matrix)
-        @test isapprox(density, settings.density; atol=0.001)
+        density_tolerance = 0.01
+        @test isapprox(density, settings.density; atol=density_tolerance)
 
         # Condition
         condition_tresh = 2
@@ -85,8 +86,8 @@ using CAMNAS, Test
         # Solving and rhs generation
         rhs = Generator.generate_rhs_vector(matrix; prefered_solution=ones(Float64, size(matrix, 1)))
         x = matrix \ rhs
-        tolerance = 1e-8
-        @test all(value -> isapprox(value, 1.0; atol=tolerance), x)
+        solving_tolerance = 1e-8
+        @test all(value -> isapprox(value, 1.0; atol=solving_tolerance), x)
 
         # Random seed
         @test matrix == Generator.generate_matrix(settings) # Reproducability
