@@ -81,7 +81,7 @@ end
 Wrapper for `function benchmark(dpsim_matrix::dpsim_csr_matrix, rhs_vector::Vector{Float64}; samples::UInt=UInt(3))`
 """
 function benchmark(csr::SparseMatrixCSR, rhs_vector::Vector{Float64}; samples::UInt=UInt(3))
-    dpsim_matrix = csr_to_dpsim(csr)
+    dpsim_matrix = Utils.csr_to_dpsim(csr)
     benchmark(dpsim_matrix, rhs_vector; samples=samples)
 end
 
