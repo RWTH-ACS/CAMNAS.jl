@@ -53,7 +53,7 @@ begin # Decomposition step
     GC.enable(false) # We cannot be sure that system_matrix is garbage collected before the pointer is passed...
     system_matrix = Utils.read_input(Utils.ArrayPath("$(@__DIR__)/system_matrix_$inputType.txt"))
     system_matrix_ptr = pointer_from_objref(system_matrix)
-    rhs_vector = read_input(VectorPath("$(@__DIR__)/rhs_$inputSize.txt"))
+    rhs_vector = Utils.read_input(Utils.VectorPath("$(@__DIR__)/rhs_$inputType.txt"))
     lhs_vector = zeros(Float64, length(rhs_vector))
     rhs_reset = ones(Float64, length(rhs_vector))
 
