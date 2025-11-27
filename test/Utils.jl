@@ -18,6 +18,16 @@ function to_zerobased_csr(matrix)
     return csr
 end
 
+function csr_to_dpsim(csr::SparseMatrixCSR)
+    matrix = dpsim_csr_matrix(
+        Base.unsafe_convert(Ptr{Cdouble}, csr.nzval),
+        Base.unsafe_convert(Ptr{Cint}, convert(Array{Int32}, csr.rowptr)), #! Cint expects 32 bit value
+        Base.unsafe_convert(Ptr{Cint}, convert(Array{Int32}, csr.colval)),
+        Int32(csr.m),
+        Int32(length(csr.nzval))
+    )
+end
+
 function read_input(path::ArrayPath)
     # Read system matrix from file
     system_matrix_strings = readlines(path.path)
