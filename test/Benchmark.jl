@@ -75,16 +75,6 @@ function benchmark(dpsim_matrix::dpsim_csr_matrix, rhs_vector::Vector{Float64}; 
     )
 end
 
-function csr_to_dpsim(csr::SparseMatrixCSR)
-    matrix = dpsim_csr_matrix(
-        Base.unsafe_convert(Ptr{Cdouble}, csr.nzval),
-        Base.unsafe_convert(Ptr{Cint}, convert(Array{Int32}, csr.rowptr)), #! Cint expects 32 bit value
-        Base.unsafe_convert(Ptr{Cint}, convert(Array{Int32}, csr.colval)),
-        Int32(csr.m),
-        Int32(length(csr.nzval))
-    )
-end
-
 """
     function benchmark(csr::SparseMatrixCSR, rhs_vector::Vector{Float64}; samples::UInt=UInt(3))
 
