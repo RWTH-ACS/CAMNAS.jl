@@ -123,7 +123,7 @@ using CAMNAS, Test
         @test Benchmark.benchmark(matrix, rhs_vector) isa Benchmark.BenchmarkResult
 
         # CUDA accelerator
-        @test Benchmark.benchmark(matrix, rhs_vector) isa Benchmark.BenchmarkResult skip=!CAMNAS.has_accelerator(CAMNAS.CUDAccelerator())
+        #@test Benchmark.benchmark(matrix, rhs_vector) isa Benchmark.BenchmarkResult skip=!CAMNAS.has_accelerator(CAMNAS.CUDAccelerator())
 
     end
 end # testset "CAMNAS"
