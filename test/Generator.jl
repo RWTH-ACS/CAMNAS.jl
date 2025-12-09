@@ -160,9 +160,12 @@ Generator.matrix_to_file(csr_matrix, matrix_path="matrix.txt")
 """
 function matrix_to_file(csr::SparseMatrixCSR; matrix_path="$(@__DIR__)/system_matrix_generated.txt")
     mkpath(dirname(matrix_path))
-
     io = open(matrix_path, "w")
-    write(io, "$(csr.nzval)\n$(csr.rowptr)\n$(csr.colval)\n$(csr.m)\n$(length(csr.nzval))")
+
+    type_stripped_nzval = isempty(csr.nzval) ? "[]" : csr.nzval
+    type_stripped_colval = isempty(csr.colval) ? "[]" : csr.colval 
+
+    write(io, "$type_stripped_nzval\n$(csr.rowptr)\n$(type_stripped_colval)\n$(csr.m)\n$(length(csr.nzval))")
     close(io)
 end
 
