@@ -25,21 +25,25 @@ function plot_solve_vs_dimension(csv_path::String)
     traces = Vector{PlotlyBase.AbstractTrace}()
     strategy_groups = groupby(df, :strategy)
     for strategy_group in strategy_groups
+        solve_times = []
+        dimensions = []
         for benchmark in eachrow(strategy_group)
             # Load Matrix
             matrix = Utils.read_input(Utils.ArrayPath(benchmark.matrix_path))
+            push!(dimensions, matrix.row_number)
 
-            display(matrix.row_number)
-            display(benchmark.solve_elapses)
+            push!(solve_times, benchmark.solve_elapses)
 
-            trace = scatter(
-                x = [0, matrix.row_number],
-                y = [0, benchmark.solve_elapses],
-                name = benchmark.strategy["specific_accelerator"]
-            )
-
-            push!(traces, trace)
         end
+
+        trace = scatter(
+            x = dimensions,
+            y = solve_times,
+            name = strategy_group[1,:].strategy["specific_accelerator"]
+        )
+
+        push!(traces, trace)
+        
     end
 
     layout = Layout(
