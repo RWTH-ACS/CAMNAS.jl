@@ -5,13 +5,16 @@ authors = ["Felix Wege <fwege@eonerc.rwth-aachen.de>"]
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 CUSOLVERRF = "a8cc9031-bad2-4722-94f5-40deabb4245c"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 FileWatching = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Metal = "dde4c033-4e86-420c-a63e-0dd931031962"
 PackageCompiler = "9b87118b-4619-50d2-8e1e-99f35a4d4d9d"
+PlotlyJS = "f0f68f2c-4968-5e81-91da-67840de0976a"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 SparseMatricesCSR = "a0a7dd2c-ebf4-11e9-1f05-cf50bc540ca1"
@@ -20,6 +23,9 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 BenchmarkTools = "1.6.0"
+CSV = "0.10.15"
+DataFrames = "1.8.1"
 Metal = "1.6.1"
+PlotlyJS = "0.18.17"
 Revise = "3.7.6"
 SparseMatricesCSR = "0.6.8"

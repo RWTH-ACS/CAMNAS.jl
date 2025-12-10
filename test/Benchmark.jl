@@ -10,6 +10,8 @@ using CAMNAS
 using Base
 using BenchmarkTools
 using SparseMatricesCSR
+using SparseArrays
+using CSV, DataFrames
 
 include("Utils.jl")
 using .Utils
@@ -80,6 +82,16 @@ end
 
 Wrapper for `function benchmark(dpsim_matrix::dpsim_csr_matrix, rhs_vector::Vector{Float64}; samples::UInt=UInt(3))`
 """
+function benchmark(csr::SparseMatrixCSC, rhs_vector::Vector{Float64}; samples::UInt=UInt(3))
+    dpsim_matrix = Utils.csc_to_dpsim(csr)
+    benchmark(dpsim_matrix, rhs_vector; samples=samples)
+end
+
+"""
+    function benchmark(csr::SparseMatrixCSR, rhs_vector::Vector{Float64}; samples::UInt=UInt(3))
+
+Wrapper for `function benchmark(dpsim_matrix::dpsim_csr_matrix, rhs_vector::Vector{Float64}; samples::UInt=UInt(3))`
+"""
 function benchmark(csr::SparseMatrixCSR, rhs_vector::Vector{Float64}; samples::UInt=UInt(3))
     dpsim_matrix = Utils.csr_to_dpsim(csr)
     benchmark(dpsim_matrix, rhs_vector; samples=samples)
@@ -104,6 +116,26 @@ function benchmark(matrix_path::AbstractString, rhs_path::AbstractString; sample
     dpsim_matrix = Utils.read_input(Utils.ArrayPath(matrix_path))
     rhs_vector = Utils.read_input(Utils.VectorPath(rhs_path))
     benchmark(dpsim_matrix, rhs_vector; samples=samples)
+end
+
+"""
+    function save_csv(path::AbstractString, benchmark_result::BenchmarkResult, matrix_path::String)
+
+TODO: WORK IN PROGRESS
+"""
+function save_csv(path::AbstractString, benchmark_result::BenchmarkResult, strategy::Dict, matrix_path::String)
+    data_frame = DataFrame(
+        decomp_elapses=[benchmark_result.decomp_elapses],
+        solve_elapses=[benchmark_result.solve_elapses],
+        strategy=[strategy],
+        matrix_path=[matrix_path]
+    )
+
+    # Create folder for csv
+    mkpath(dirname("$path"))
+
+    append = isfile("$path") # with append no header is written
+    CSV.write("$path", data_frame; append=append)
 end
 
 end
