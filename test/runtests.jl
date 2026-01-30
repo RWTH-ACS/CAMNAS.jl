@@ -124,6 +124,8 @@ using CUDA
         @test Benchmark.benchmark(matrix, rhs_vector) isa Benchmark.BenchmarkResult
 
         # CUDA accelerator
+        ENV["JL_MNA_RUNTIME_SWITCH"] = "true"
+        ENV["JL_MNA_FORCE_GPU"] = "true"
         @test Benchmark.benchmark(matrix, rhs_vector) isa Benchmark.BenchmarkResult skip=!CUDA.has_cuda_gpu()
 
     end
