@@ -165,7 +165,8 @@ function map_CuDevice_to_nvidiasmi()
     for line in smi_output
         idx, pci_full = split(strip(line), ',')
         idx = parse(Int, strip(idx))
-        pci_bus_id = strip(pci_full)[10:11]  # extrace "XX" from "00000000:XX:00.0"
+        pci_bus_id = strip(pci_full)[10:11]  # extract "XX" from "00000000:XX:00.0"
+        pci_bus_id = lstrip(pci_bus_id, '0') # Remove trailing zeros
         smi_devices[pci_bus_id] = idx
     end
 
