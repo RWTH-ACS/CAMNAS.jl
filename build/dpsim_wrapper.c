@@ -6,34 +6,39 @@
 
 #include <dpsim/MNASolverDynInterface.h>
 
-void __attribute__((constructor)) init_lib (void){
+int init_wrapper(struct dpsim_csr_matrix *matrix)
+{
     printf("[CAMNAS] Initializing Julia...\n");
-    char** argv;
+    char **argv;
     int argc = 0;
 
     init_julia(argc, argv);
+    init(matrix);
+};
 
-}
+void cleanup_wrapper(void)
+{
+    cleanup();
 
-void __attribute__((destructor)) shutdown_lib (void){
     printf("[CAMNAS] Shutting down Julia...\n");
     shutdown_julia(0);
 }
 
-static const char* PLUGIN_NAME = "camnasjl";
+static const char *PLUGIN_NAME = "camnasjl";
 static struct dpsim_mna_plugin solver_plugin = {
-	.log = log,
-	.init = init,
-	.lu_decomp = decomp,
-	.solve = solve,
-	.cleanup = cleanup,
+    .log = log,
+    .init = init_wrapper,
+    .lu_decomp = decomp,
+    .solve = solve,
+    .cleanup = cleanup_wrapper,
 };
 
-struct dpsim_mna_plugin *get_mna_plugin(const char *name) {
-    if (name == NULL || strcmp(name, PLUGIN_NAME) != 0) {
+struct dpsim_mna_plugin *get_mna_plugin(const char *name)
+{
+    if (name == NULL || strcmp(name, PLUGIN_NAME) != 0)
+    {
         printf("error: name mismatch %s %s\n", name, PLUGIN_NAME);
         return NULL;
     }
     return &solver_plugin;
 }
-
