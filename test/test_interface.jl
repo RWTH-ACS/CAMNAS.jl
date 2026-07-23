@@ -7,14 +7,15 @@ begin # Initialization
     ##############################################################
 
     @assert inputType in ["small", "medium", "big", "generated"]
-    ENV["JULIA_DEBUG"] = "CAMNAS" # Enable debug output
+    ENV["JULIA_DEBUG"] = "" # Enable debug output
     ENV["JL_MNA_RUNTIME_SWITCH"] = "true" # Enable runtime switch
-    ENV["JL_MNA_PRINT_ACCELERATOR"] = "true" # Enable printing accelerator in each solve steps
+    ENV["JL_MNA_PRINT_ACCELERATOR"] = "false" # Enable printing accelerator in each solve steps
+
     push!(LOAD_PATH, pwd())
     #push!(LOAD_PATH, "$(pwd())/accelerators")
     @info LOAD_PATH
     using Pkg
-    Pkg.activate(LOAD_PATH[4])
+    Pkg.activate(LOAD_PATH[4]*"/test")
     Pkg.status()
 
     using CAMNAS
@@ -26,7 +27,7 @@ begin # Initialization
         include("Generator.jl")
 
         # Generate test matrix
-        generator_settings = Generator.Settings(dimension=3, density=0.01)
+        generator_settings = Generator.Settings(dimension=300, density=0.1)
         matrix = Generator.generate_matrix(generator_settings)
 
         # matrix to file
@@ -57,15 +58,16 @@ begin # Decomposition step
     lhs_vector = zeros(Float64, length(rhs_vector))
     rhs_reset = ones(Float64, length(rhs_vector))
 
-    
+
     @time decomp(Base.unsafe_convert(Ptr{dpsim_csr_matrix}, system_matrix_ptr))
     GC.enable(true)
 end # end Decomposition
 
-begin # Solving step 
+begin # Solving step
     @time solve(Base.unsafe_convert(Ptr{Cdouble}, rhs_reset), Base.unsafe_convert(Ptr{Cdouble}, lhs_vector))
 end # end Solving
 
 begin # Cleanup step
     cleanup()
 end # end Cleanup
+

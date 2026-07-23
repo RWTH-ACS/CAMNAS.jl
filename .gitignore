@@ -8,4 +8,4 @@ src/accelerators/.acceleratorPerformanceIndicator
 src/system.env
 
 *_generated.txt
-testBenchmark
+benchmark

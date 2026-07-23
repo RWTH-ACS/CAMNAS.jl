@@ -28,6 +28,12 @@ function csr_to_dpsim(csr::SparseMatrixCSR)
     )
 end
 
+function julia_to_dpsim(matrix::Matrix)
+    csr = Utils.to_zerobased_csr(matrix)
+    dpsim_matrix = Utils.csr_to_dpsim(csr)
+    return dpsim_matrix
+end
+
 function read_input(path::ArrayPath)
     # Read system matrix from file
     system_matrix_strings = readlines(path.path)
@@ -58,6 +64,39 @@ function read_input(path::VectorPath)
     # Sanitize rhs strings and parse into Float64 vector
     rhs_vector_strings = replace.(rhs_vector_strings, r"[\[\],]" => "")
     rhs_vector = parse.(Float64, split(rhs_vector_strings[1]))
+end
+
+function read_input_matrix(path::String)
+    # Read file
+    lines = readlines(path)
+
+    # Remove brackets and commas
+    lines = replace.(lines, r"[\[\],]" => "")
+
+    # Parse CSR data
+    values = parse.(Float64, split(lines[1]))
+    rowptr = parse.(Int, split(lines[2]))
+    colind = parse.(Int, split(lines[3]))
+
+    nrows = parse(Int, lines[4])
+    ncols = parse(Int, lines[5])
+
+    # Allocate dense Julia matrix
+    A = zeros(Float64, nrows, ncols)
+
+    # CSR -> dense matrix
+    # File uses 0-based indexing
+    for row in 1:nrows
+        start_idx = rowptr[row] + 1
+        end_idx   = rowptr[row + 1]
+
+        for k in start_idx:end_idx
+            col = colind[k] + 1
+            A[row, col] = values[k]
+        end
+    end
+
+    return A
 end
 
 end

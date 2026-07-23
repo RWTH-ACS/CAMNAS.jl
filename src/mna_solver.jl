@@ -81,7 +81,7 @@ function determine_accelerator(strategy::LowestPowerStrategy, accelerators_vecto
     if !varDict["allow_gpu"] && !varDict["allow_cpu"]
         @error "Nothing allowed"
         return nothing
-    end 
+    end
 
     # This really doesnt seem nice
     if varDict["allow_gpu"]
@@ -112,13 +112,13 @@ function determine_accelerator(strategy::HighestPerfStrategy, accelerators_vecto
     if !varDict["allow_gpu"] && !varDict["allow_cpu"]
         @error "Nothing allowed"
         return nothing
-    end 
+    end
 
     # This really doesnt seem nice
     if varDict["allow_gpu"]
         allowed_accelerators = filter(x -> typeof(x) != NoAccelerator, accelerators_vector)
     end
-    
+
     if varDict["allow_cpu"]
         push!(allowed_accelerators, accelerators_vector[findfirst(x -> typeof(x) == NoAccelerator, accelerators_vector)])
     end
@@ -155,11 +155,11 @@ function find_accelerator()
     try
         @debug "Trying to load accelerators..."
         Accelerators.load_all_accelerators(accelerators_vector)
-    catch e 
+    catch e
         @error "Failed to load accelerators: $e"
-        set_current_accelerator!(NoAccelerator()) 
+        set_current_accelerator!(NoAccelerator())
     end
-    
+
     evaluate_system_environment(nothing)
     @debug "Present accelerators: $([a.name for a in accelerators_vector])"
 end
@@ -202,7 +202,7 @@ function determine_accelerator()
         val = take!(system_environment)
         @debug "Received new system environment!: $val"
         val === nothing ? break : nothing
-        
+
         evaluate_system_environment(val)
     end
     @debug "Accelerator determination stopped!"
@@ -211,7 +211,7 @@ end
 function evaluate_system_environment(content)
     global current_strategy
     first_run = false
-    if(content === nothing)
+    if (content === nothing)
         @debug "Setting up: Reading ENV for the first time"
         file_system_env = (@__DIR__)*"/system.env"
         first_run = true
@@ -243,11 +243,11 @@ function evaluate_system_environment(content)
                 @warn "Conflict: Both 'force_cpu' and 'force_gpu' are set. Only one can be forced."
                 idx = findfirst(x -> x.name == "cpu", accelerators_vector)
                 typeof(current_accelerator) == NoAccelerator || set_current_accelerator!(accelerators_vector[idx])
-            
+
             elseif varDict["allow_gpu"] && varDict["force_gpu"] # anything but cpu is considered gpu
-                idx = findfirst(x -> typeof(x) != NoAccelerator, accelerators_vector)   
+                idx = findfirst(x -> typeof(x) != NoAccelerator, accelerators_vector)
                 set_current_accelerator!(accelerators_vector[idx])
-            
+
             elseif varDict["allow_cpu"] && varDict["force_cpu"]
                 idx = findfirst(x -> x.name == "cpu", accelerators_vector)
                 typeof(current_accelerator) == NoAccelerator || set_current_accelerator!(accelerators_vector[idx])
@@ -255,7 +255,7 @@ function evaluate_system_environment(content)
             @debug "Forcing prioritized, using NoStrategy"
             determine_accelerator(NoStrategy(), accelerators_vector)
 
-        # STRATEGIES
+            # STRATEGIES
         elseif varDict["allow_strategies"]
             if varDict["highest_flop_strategy"] && varDict["lowest_power_strategy"]
                 @debug "Too many Stragegies set! Only one can be used at a time."
@@ -264,14 +264,14 @@ function evaluate_system_environment(content)
             elseif varDict["highest_flop_strategy"]
                 @debug "Selected HighestPerfStrategy"
                 current_strategy = HighestPerfStrategy()
-            
-            elseif varDict["lowest_power_strategy"] 
+
+            elseif varDict["lowest_power_strategy"]
                 @debug "Selected LowestPowerStrategy"
                 current_strategy = LowestPowerStrategy()
 
             elseif varDict["specific_accelerator_strategy"]
-               @debug "Selected SpecificAcceleratorStrategy"
-               current_strategy = SpecificAcceleratorStrategy()
+                @debug "Selected SpecificAcceleratorStrategy"
+                current_strategy = SpecificAcceleratorStrategy()
 
             else
                 @debug "Selected DefaultStrategy"
@@ -279,15 +279,15 @@ function evaluate_system_environment(content)
             end
             determine_accelerator(current_strategy, accelerators_vector)
 
-        elseif varDict["allow_gpu"] 
-            idx = findfirst(x -> typeof(x) != NoAccelerator, accelerators_vector)   
+        elseif varDict["allow_gpu"]
+            idx = findfirst(x -> typeof(x) != NoAccelerator, accelerators_vector)
             set_current_accelerator!(accelerators_vector[idx])
-        
+
         elseif varDict["allow_cpu"]
             idx = findfirst(x -> x.name == "cpu", accelerators_vector)
             typeof(current_accelerator) == NoAccelerator || set_current_accelerator!(accelerators_vector[idx])
-        
-        # NOTHING ALLOWED
+
+            # NOTHING ALLOWED
         else
             @debug "Conflict: Nothing is allowed. THIS DOESNT MAKE SENSE!"
         end
@@ -295,19 +295,19 @@ function evaluate_system_environment(content)
         if varDict["allow_strategies"]
             @info "[CAMNAS] Currently used strategy: $(typeof(current_strategy))"
         end
-        @info "[CAMNAS] Currently used accelerator: $current_accelerator" 
+        @info "[CAMNAS] Currently used accelerator: $current_accelerator"
     else
         @warn "Runtime switch is disabled, Accelerator will not be changed."
     end
-end    
+end
 
 # FIXME: this seems weird not to be in Accelerators.jl
-function set_current_accelerator!(acc::AbstractAccelerator) 
+function set_current_accelerator!(acc::AbstractAccelerator)
     @debug "Setting current accelerator to: $(typeof(acc))"
     global current_accelerator = acc
 end
 
-function has_accelerator(accelerator::T) where T <:AbstractAccelerator
+function has_accelerator(accelerator::T) where T<:AbstractAccelerator
     global accelerators_vector
     findfirst(x -> typeof(x) == typeof(accelerator), accelerators_vector) !== nothing
 end
@@ -348,8 +348,8 @@ by naming convention: <AcceleratorType>_LUdecomp
 """
 function get_ludecomp_type(accelerator::AbstractAccelerator)
     acc_type = typeof(accelerator)
-    acc_name = string(nameof(typeof(accelerator)))  
-    lu_type_name = Symbol(acc_name * "_LUdecomp")  
+    acc_name = string(nameof(typeof(accelerator)))
+    lu_type_name = Symbol(acc_name * "_LUdecomp")
 
     if !isdefined(Accelerators, lu_type_name)
         error("LU decomposition type $lu_type_name not defined in module $(mod).")
@@ -398,13 +398,13 @@ end
 function mna_solve(my_system_matrix, rhs)
     # Allow printing accelerator without debug statements
     (haskey(ENV, "JL_MNA_PRINT_ACCELERATOR") && ENV["JL_MNA_PRINT_ACCELERATOR"] == "true" ?
-        println(typeof(current_accelerator))
-        : nothing)
-    
-    Accelerators.set_acceleratordevice!(current_accelerator)        # sets the ACTUAL physical accelerator device
-    idx = findfirst(x -> typeof(x) == get_ludecomp_type(current_accelerator), my_system_matrix) 
+     println(typeof(current_accelerator))
+     : nothing)
 
-    
+    Accelerators.set_acceleratordevice!(current_accelerator)        # sets the ACTUAL physical accelerator device
+    idx = findfirst(x -> typeof(x) == get_ludecomp_type(current_accelerator), my_system_matrix)
+
+
     if idx === nothing
         @debug "Decomposition for $(typeof(current_accelerator)) is not valid, recalculating..."
         global csr_mat

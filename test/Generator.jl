@@ -14,6 +14,8 @@ using SparseMatricesCSR
 using LinearAlgebra
 using Base
 
+include("Utils.jl")
+
 """
     Settings
 
@@ -46,6 +48,34 @@ settings = Generator.Settings(
     magnitude_off::Float64 = 0.05
     delta::Float64 = 0.5
     seed::UInt = rand(UInt)
+end
+
+
+"""
+    Lazy Iterator
+"""
+struct LazyMatrixBuilder
+    settings::Vector{Settings}
+end
+
+function Base.iterate(matrix_builder::LazyMatrixBuilder, state=1)
+    if state > size(matrix_builder.settings)[1]
+        return nothing
+    end
+
+    return (generate_matrix(matrix_builder.settings[state]), state + 1)
+end
+
+struct LazyMatrixLoader
+    paths::Vector{String}
+end
+
+function Base.iterate(matrix_loader::LazyMatrixLoader, state=1)
+    if state > size(matrix_loader.paths)[1]
+        return nothing
+    end
+
+    return (Utils.read_input_matrix(matrix_loader.paths[state]), state + 1)
 end
 
 """
@@ -163,7 +193,7 @@ function matrix_to_file(csr::SparseMatrixCSR; matrix_path="$(@__DIR__)/system_ma
     io = open(matrix_path, "w")
 
     type_stripped_nzval = isempty(csr.nzval) ? "[]" : csr.nzval
-    type_stripped_colval = isempty(csr.colval) ? "[]" : csr.colval 
+    type_stripped_colval = isempty(csr.colval) ? "[]" : csr.colval
 
     write(io, "$type_stripped_nzval\n$(csr.rowptr)\n$(type_stripped_colval)\n$(csr.m)\n$(length(csr.nzval))")
     close(io)

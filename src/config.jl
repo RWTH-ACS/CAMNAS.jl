@@ -28,7 +28,7 @@ function create_env_file()
 end
 
 function parse_env_vars()
-    varDict = Dict()
+    varDict = Dict{String, Any}()
 
     varDict["hwAwarenessDisabled"] = env("JL_MNA_DISABLE_AWARENESS", false)
 
