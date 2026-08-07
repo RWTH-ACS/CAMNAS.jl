@@ -2,7 +2,7 @@ module Accelerators
 import ..CAMNAS
 
 export AbstractAccelerator, AcceleratorProperties, AbstractLUdecomp
-export discover_accelerator, mna_decomp, mna_solve, estimate_perf
+export discover_accelerator, mna_decomp, mna_solve, estimate_perf, get_tdp, getPerformanceIndicator
 
 using SparseArrays
 using LinearAlgebra
