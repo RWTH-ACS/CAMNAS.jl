@@ -1,9 +1,30 @@
+module MetalAccelerator
+
 export MetalAccelerator, MetalAccelerator_LUdecomp
 export discover_accelerator, mna_decomp, mna_solve
 
 using Metal
 
-struct MetalAccelerator <: AbstractAccelerator 
+using CAMNAS.Accelerators: AbstractAccelerator,
+                           AcceleratorProperties,
+                           AbstractLUdecomp
+
+import CAMNAS.Accelerators: discover_accelerator,
+                            mna_decomp,
+                            mna_solve,
+                            get_tdp,
+                            getPerformanceIndicator
+
+function __init__()
+    # Register in Camnas
+    CAMNAS.register_accelerator!(MetalAccelerator)
+end
+
+# Register in Camnas
+global accelerators_vector
+discover_accelerator(accelerators, MetalAccelerator)
+
+struct MetalAccelerator <: AbstractAccelerator
     name::String
     properties::AcceleratorProperties
 
@@ -13,7 +34,7 @@ struct MetalAccelerator <: AbstractAccelerator
 end
 
 # DenseMatrix since Sparse Matrix support for Metal.jl is not implemented yet.
-struct MetalAccelerator_LUdecomp <: AbstractLUdecomp 
+struct MetalAccelerator_LUdecomp <: AbstractLUdecomp
     lu_decomp::LU{Float32, MtlMatrix{Float32, Metal.PrivateStorage}, MtlVector{UInt32, Metal.PrivateStorage}}
     inverse::LU{Float32, MtlMatrix{Float32, Metal.PrivateStorage}, MtlVector{UInt32, Metal.PrivateStorage}}
 end
@@ -43,7 +64,7 @@ function has_driver(accelerator::MetalAccelerator)
 end
 
 function estimate_perf(accelerator::MetalAccelerator;
-                        n::Int = 4096, 
+                        n::Int = 4096,
                         trials::Int = 5,
                         inT::DataType=Float32,
                         ouT::DataType=inT) # returns performance indicator
@@ -66,8 +87,8 @@ function get_tdp(accelerator::MetalAccelerator)
     return 25.0
 end
 
-# Metal does not support ldiv or \, this is why we calculate with the inverse 
-# either we calculate 2 lu decompositions or we move the calculated lu decomposition back to cpu, 
+# Metal does not support ldiv or \, this is why we calculate with the inverse
+# either we calculate 2 lu decompositions or we move the calculated lu decomposition back to cpu,
 # to calculate the inverse only to then move the inverse back to the gpu, because there is no inverse function in Metal.jl
 # this seems ineffective
 function mna_decomp(sparse_mat, accelerator::MetalAccelerator)
@@ -81,8 +102,8 @@ function mna_decomp(sparse_mat, accelerator::MetalAccelerator)
     sparse_mat_mtl_inverse = Metal.mtl(inverse)
 
     decomp = lu(sparse_mat_mtl)
-    inv_decomp = lu(sparse_mat_mtl_inverse) 
-    
+    inv_decomp = lu(sparse_mat_mtl_inverse)
+
     return MetalAccelerator_LUdecomp(decomp, inv_decomp)
 end
 
@@ -93,14 +114,16 @@ function mna_solve(system_matrix::MetalAccelerator_LUdecomp, rhs, accelerator::M
 # are dpsim matrices always nonsingular?
 
     # GPU solve step: not numerically stable, not as performant as \ or ldiv
-    
-    rhs_mtl = Metal.mtl(rhs)    
+
+    rhs_mtl = Metal.mtl(rhs)
     lhs_mtl = Metal.mtl(system_matrix.inverse.P) * (system_matrix.inverse.L * (system_matrix.inverse.U * rhs_mtl))
 
     lhs = Array(lhs_mtl) # convert back to CPU array
-    return Float64.(lhs) # convert back to Float64 
+    return Float64.(lhs) # convert back to Float64
 
     # CPU solve step
     # lu_decomp = Matrix(system_matrix.lu_decomp)
     # return system_matrix.lu_decomp \ rhs
+end
+
 end
