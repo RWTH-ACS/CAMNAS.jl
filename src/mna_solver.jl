@@ -23,6 +23,13 @@ global current_accelerator = NoAccelerator()
 global current_strategy = NoStrategy()
 global system_matrix = Vector{AbstractLUdecomp}()
 
+function register_accelerator!(T::Type{<:AbstractAccelerator})
+    # Create Accelerator instance by calling the default constructor
+    # TODO: See https://github.com/RWTH-ACS/CAMNAS.jl/issues/41
+    accelerator_instance = T()
+    discover_accelerator(accelerators_vector, accelerator_instance)
+end
+
 """
     determine_accelerator(strategy::AbstractSelectionStrategy, accelerators_vector::Vector{AbstractAccelerator}) -> Nothing
 
