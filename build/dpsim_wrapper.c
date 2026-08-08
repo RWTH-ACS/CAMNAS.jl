@@ -26,7 +26,7 @@ void cleanup_wrapper(void)
 
 static const char *PLUGIN_NAME = "camnasjl";
 static struct dpsim_mna_plugin solver_plugin = {
-    .log = log,
+    .log = camnas_log,
     .init = init_wrapper,
     .lu_decomp = decomp,
     .solve = solve,

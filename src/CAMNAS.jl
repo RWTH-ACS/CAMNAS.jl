@@ -108,12 +108,12 @@ Base.@ccallable function cleanup()::Cvoid
 end
 
 """
-    @callable log(log_string::Cstring)::Cvoid
+    @callable camnas_log(log_string::Cstring)::Cvoid
 
 Print the given log string to the console.
 """
-function log end # Dummy function to allow documentation for ccallable function
-Base.@ccallable function log(log_string::Cstring)::Cvoid
+function camnas_log end # Dummy function to allow documentation for ccallable function
+Base.@ccallable function camnas_log(log_string::Cstring)::Cvoid
     println("[Log]: $(unsafe_string(log_string))")
 end
 
