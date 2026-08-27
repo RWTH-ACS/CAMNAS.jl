@@ -15,14 +15,11 @@ import CAMNAS.Accelerators: discover_accelerator,
                             get_tdp,
                             getPerformanceIndicator
 
+# Register in Camnas on module load
 function __init__()
-    # Register in Camnas
+    @info "Activating Metal Extension"
     CAMNAS.register_accelerator!(MetalAccelerator)
 end
-
-# Register in Camnas
-global accelerators_vector
-discover_accelerator(accelerators, MetalAccelerator)
 
 struct MetalAccelerator <: AbstractAccelerator
     name::String
