@@ -15,5 +15,5 @@ PackageCompiler.create_library("$(build_dir)/..", target_dir;
                                 include_lazy_artifacts=true,
                                 header_files = ["$(@__DIR__)/camnasjl.h"],
                                 force=true,
-                                cpu_target="native"
+                                cpu_target="x86-64"
                             )
