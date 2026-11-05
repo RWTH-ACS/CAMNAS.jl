@@ -10,20 +10,34 @@ Its key features include:
 - Asynchronous system monitoring/decision-making for accelerator selection (*under development*)
 
 ## Building the DPsim plugin
-<em>Note: The compilation of the shared library takes some time. Approx. 10 minutes on our hardware.</em>
-
 ### With Docker (recommended)
+#### Building the container
+First build the docker container with the following command:
 ```shell
 sudo docker build -t camnas .
 ```
 
-#### Running in Docker
+#### Building the plugin
+<em>Note: The compilation of the shared library takes some time. Approx. 10 minutes on our hardware.</em>
 <em>Note: To be able to use gpus in containers refer to https://podman-desktop.io/docs/podman/gpu </em>
+The folllowing command will give the build process access to gpus and mount the local camnas folder inside of the container:
 ```shell
-sudo docker run -it --device nvidia.com/gpu=all camnas /bin/bash
+sudo docker run -it --device nvidia.com/gpu=all -v .:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl -t camnas /bin/bash
 ```
+
+Then inside the docker shell type
+```shell
+# Instantiate packages
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+make -j8
+```
+to build the shared library.
+
+#### Running a scenario
 Example usage:
 ```shell
+cd /app/dpsim/build/dpsim/examples/cxx/
+
 LD_LIBRARY_PATH=/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl/CAMNASCompiled/lib:$LD_LIBRARY_PATH \
 ./WSCC_9bus_mult_coupled \
     -U Plugin \
@@ -89,6 +103,12 @@ Developing or testing a shared library or plugin can be tideous, especially due 
 This script allows testing all externally accessible functions directly within Julia.
 
 To ensure compatibility with DPsim, three test case inputs of different sizes are provided. The specific input size can be adjusted using the `inputType` variable at the beginning of the script. All inputs are designed to satisfy the equation `x = A \ b`, where `A` is a sparse matrix in CSR format and `b` is a vector.
+
+### Developing in docker
+```shell
+sudo docker build -t camnas .
+sudo docker run -it --device nvidia.com/gpu=all -v .:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl -t camnas /bin/bash
+```
 
 ## Contribution
 We require all commits to be signed-off by the contributer. By doing this, you state that you agree to the terms of the "Developer Certificate of Origin (DCO)" (https://developercertificate.org), for the submitted contribution.
