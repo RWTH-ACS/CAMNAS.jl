@@ -45,10 +45,10 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t camnascompiled .
+          docker build -t camnas .
 
       - name: Save image
-        run: docker save camnascompiled | gzip > image.tar.gz
+        run: docker save camnas | gzip > image.tar.gz
 
       # Save as artifact
       - uses: actions/upload-artifact@v4
@@ -69,11 +69,28 @@ jobs:
       - run: |
           gunzip -c image.tar.gz | docker load
 
-      - run: |
+      - name: Build Plugin
+        run: |
           docker run --rm \
-            -e JL_MNA_ALLOW_GPU=false \
-            camnascompiled \
-            bash -lc '
-              export LD_LIBRARY_PATH=/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl/CAMNASCompiled/lib:$LD_LIBRARY_PATH
-              exec ./WSCC_9bus_mult_coupled -U Plugin -P camnasjl
-            '
+              --name camnas \
+              -v "$GITHUB_WORKSPACE:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl" \
+              camnas \
+              bash -lc '
+                set -e
+
+                julia --project=. -e "using Pkg; Pkg.instantiate()"
+
+                make -j8
+              '
+
+      - name: Run solver Plugin
+        run: |
+          docker run --rm \
+              -v "$GITHUB_WORKSPACE:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl" \
+              -e JL_MNA_ALLOW_GPU=false \
+              camnas \
+              bash -lc '
+                cd /app/dpsim/build/dpsim/examples/cxx
+                export LD_LIBRARY_PATH=/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl/camnas/lib:$LD_LIBRARY_PATH
+                exec ./WSCC_9bus_mult_coupled -U Plugin -P camnasjl
+              '
