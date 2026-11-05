@@ -50,17 +50,5 @@ RUN wget -q https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MAJOR}/juli
 ENV JULIA_BINDIR=/usr/local/julia-${JULIA_VERSION}/bin
 ENV PATH=/usr/local/julia-${JULIA_VERSION}/bin:$PATH
 
-# Copy Camnas source
+# Workdir
 WORKDIR /app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl
-
-# Use local folder for camnas source
-COPY . .
-
-# Instantiate packages
-RUN julia --project=$(pwd) --eval="using Pkg;Pkg.instantiate()"
-
-# Create shared library
-RUN make -j$(nproc) camnasjl.so
-RUN make -j$(nproc) plugin.so
-
-WORKDIR /app/dpsim/build/dpsim/examples/cxx
