@@ -40,7 +40,7 @@ RUN dnf update && \
 
 # Install Julia
 ARG JULIA_MAJOR=1.12
-ARG JULIA_VERSION=1.12.1
+ARG JULIA_VERSION=1.12.7
 
 RUN wget -q https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MAJOR}/julia-${JULIA_VERSION}-linux-x86_64.tar.gz && \
     tar -C /usr/local -xzf julia-${JULIA_VERSION}-linux-x86_64.tar.gz && \
