@@ -1,5 +1,8 @@
 name: runner-check
-on: workflow_dispatch
+on:
+  push:
+    branches : [ check-runner ]
+  workflow_dispatch:
 
 jobs:
   check:
