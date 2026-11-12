@@ -36,7 +36,7 @@ jobs:
         #   annotate: true
 
   docker-build:
-    timeout-minutes: 40
+    timeout-minutes: 20
     runs-on: ubuntu-latest
 
     steps:
@@ -59,9 +59,12 @@ jobs:
   shared-library-docker:
     needs: docker-build
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 40
 
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           name: docker-image
@@ -74,9 +77,15 @@ jobs:
           docker run --rm \
               --name camnas \
               -v "$GITHUB_WORKSPACE:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl" \
+              -w /app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl \
               camnas \
               bash -lc '
                 set -e
+
+                pwd
+                ls -l CAMNASCompiled/include/julia_init.h
+                make -n wrapper.o
+                gcc --version
 
                 julia --project=. -e "using Pkg; Pkg.instantiate()"
 
@@ -90,7 +99,14 @@ jobs:
               -e JL_MNA_ALLOW_GPU=false \
               camnas \
               bash -lc '
+                set -ex
+
                 cd /app/dpsim/build/dpsim/examples/cxx
+
+                echo "=== Checking plugin files ==="
+                ls -la /app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl
+
                 export LD_LIBRARY_PATH=/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl/camnas/lib:$LD_LIBRARY_PATH
+
                 exec ./WSCC_9bus_mult_coupled -U Plugin -P camnasjl
               '
