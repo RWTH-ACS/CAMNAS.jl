@@ -14,6 +14,8 @@ struct DummyAccelerator_LUdecomp <: AbstractLUdecomp
     lu_decomp::LinearAlgebra.TransposeFactorization
 end
 
+ludecomp_type(::Type{DummyAccelerator}) = DummyAccelerator_LUdecomp
+
 function has_driver(accelerator::DummyAccelerator) 
     return true
 end
