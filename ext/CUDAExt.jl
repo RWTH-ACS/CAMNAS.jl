@@ -1,3 +1,5 @@
+module CUDAExt
+
 export CUDAccelerator, CUDAccelerator_LUdecomp
 export discover_accelerator, mna_decomp, mna_solve
 
@@ -5,6 +7,26 @@ using CUDA
 using CUDA.CUSPARSE
 using CUSOLVERRF
 using SparseMatricesCSR
+using BenchmarkTools
+
+using CAMNAS
+
+using CAMNAS.Accelerators: AbstractAccelerator,
+                           AcceleratorProperties,
+                           AbstractLUdecomp
+
+import CAMNAS.Accelerators: discover_accelerator,
+                            mna_decomp,
+                            mna_solve,
+                            get_tdp,
+                            getPerformanceIndicator
+
+function __init__()
+    @info "Activating Cuda Extension"
+
+    # Register in Camnas
+    CAMNAS.register_accelerator!(CUDAccelerator)
+end
 
 """
     CUDAccelerator <: AbstractAccelerator
@@ -19,7 +41,7 @@ by CAMNAS.jl accelerator selection logic.
 - `properties::AcceleratorProperties` : measured or estimated performance and power characteristics.
 - `device::CuDevice` : the underlying CUDA device handle.
 """
-struct CUDAccelerator <: AbstractAccelerator 
+struct CUDAccelerator <: AbstractAccelerator
     name::String
     properties::AcceleratorProperties
     device::CuDevice
@@ -40,7 +62,7 @@ on the GPU.
 # Fields
 - `lu_decomp::CUSOLVERRF.RFLU` : the GPU-resident LU factorization object.
 """
-struct CUDAccelerator_LUdecomp <: AbstractLUdecomp 
+struct CUDAccelerator_LUdecomp <: AbstractLUdecomp
     lu_decomp::CUSOLVERRF.RFLU
 end
 
@@ -54,8 +76,8 @@ function has_driver(accelerator::CUDAccelerator)
     return true
 end
 
-function discover_accelerator(accelerators::Vector{AbstractAccelerator}, accelerator::CUDAccelerator) 
-    devices = collect(CUDA.devices())   # Vector of CUDA devices 
+function discover_accelerator(accelerators::Vector{AbstractAccelerator}, accelerator::CUDAccelerator)
+    devices = collect(CUDA.devices())   # Vector of CUDA devices
     @debug "Found $(length(devices)) CUDA devices"
 
     for device in devices
@@ -66,7 +88,7 @@ function discover_accelerator(accelerators::Vector{AbstractAccelerator}, acceler
         cuda_acc = CUDAccelerator(device_name, device, AcceleratorProperties(true, 1, cuda_perf, power_limit))
         push!(accelerators, cuda_acc)
     end
-    
+
 end
 
 function mna_decomp(sparse_mat, accelerator::CUDAccelerator)
@@ -86,7 +108,7 @@ function mna_solve(system_matrix::CUDAccelerator_LUdecomp, rhs, accelerator::CUD
 end
 
 function estimate_perf(accelerator::CUDAccelerator;
-                        n::Int = 8192, 
+                        n::Int = 8192,
                         trials::Int = 5,
                         inT::DataType=Float64,
                         ouT::DataType=inT)   # returns flops in GFLOPs
@@ -95,7 +117,7 @@ function estimate_perf(accelerator::CUDAccelerator;
 
     # Set the CUDA device for benchmark
     CUDA.device!(dev)
-    
+
     # Allocate GPU matrices
     A = CUDA.ones(inT, n, n)
     B = CUDA.ones(inT, n, n)
@@ -103,12 +125,12 @@ function estimate_perf(accelerator::CUDAccelerator;
 
     flops = 2 * n^3 - n^2
 
-    min_time = @belapsed CUDA.@sync mul!($C, $A, $B) 
+    min_time = @belapsed CUDA.@sync mul!($C, $A, $B)
 
     gflops = flops / (min_time * 1e9)
 
     perfIndicator = round(gflops, digits=2)
-  
+
     return perfIndicator
 end
 
@@ -119,7 +141,7 @@ function get_tdp(accelerator::CUDAccelerator)
 
     cmd = `nvidia-smi -i $(mapping[cuda_device_id]) --query-gpu=power.limit --format=csv,noheader,nounits`
     power_limit = readlines(cmd)
-    power_limit = parse(Float64, power_limit[1]) 
+    power_limit = parse(Float64, power_limit[1])
     return power_limit
 end
 
@@ -136,7 +158,7 @@ function set_acceleratordevice!(accelerator::CUDAccelerator)
     @debug "Setting CUDA device to $(accelerator.device) on Thread $(Threads.threadid())"
     @debug "Previous device was $(old_device)"
     @debug "Extracting LU decomposition from device $(old_device)"
-    
+
     idx = findfirst(x-> typeof(x) == CUDAccelerator_LUdecomp, CAMNAS.system_matrix)
     cuda_lu = system_matrix_dev2host(CAMNAS.system_matrix[idx])
 
@@ -194,4 +216,6 @@ function system_matrix_dev2host(cuda_lu::CUDAccelerator_LUdecomp) #transfer LU f
 
     M_cpu = SparseMatrixCSR{1}(nrow, ncol, rowPtr, colVal, nzVal) # 1 indicates index base
     return  M_cpu
+end
+
 end
