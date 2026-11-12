@@ -1,12 +1,10 @@
 name = "CAMNAS"
 uuid = "0b880eee-5bea-49e4-84ce-93e95af8a2a0"
-authors = ["Felix Wege <fwege@eonerc.rwth-aachen.de>"]
 version = "0.2.0"
+authors = ["Felix Wege <fwege@eonerc.rwth-aachen.de>"]
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
-CUSOLVERRF = "a8cc9031-bad2-4722-94f5-40deabb4245c"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 FileWatching = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -17,9 +15,16 @@ Suppressor = "fd094767-a336-5f1f-9728-57cf17d0bbfb"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [weakdeps]
+CUSOLVERRF = "a8cc9031-bad2-4722-94f5-40deabb4245c"
 Metal = "dde4c033-4e86-420c-a63e-0dd931031962"
 CUDSS = "45b445bb-4962-46a0-9369-b4df9d0f772e"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 
 [extensions]
-MetalAccelerator = "Metal"
-CudssAccelerator = "CUDSS"
+CUDAExt = ["CUDA", "CUSOLVERRF"]
+CUDSSExt = ["CUDA", "CUDSS"]
+MetalExt = "Metal"
+
+[compat]
+CUDA = "6.4.1"
+CUDSS = "0.8.1"
