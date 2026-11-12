@@ -1,4 +1,4 @@
-module MetalAccelerator
+module MetalExt
 
 export MetalAccelerator, MetalAccelerator_LUdecomp
 export discover_accelerator, mna_decomp, mna_solve
@@ -15,14 +15,11 @@ import CAMNAS.Accelerators: discover_accelerator,
                             get_tdp,
                             getPerformanceIndicator
 
+# Register in Camnas on module load
 function __init__()
-    # Register in Camnas
+    @info "Activating Metal Extension"
     CAMNAS.register_accelerator!(MetalAccelerator)
 end
-
-# Register in Camnas
-global accelerators_vector
-discover_accelerator(accelerators, MetalAccelerator)
 
 struct MetalAccelerator <: AbstractAccelerator
     name::String
@@ -34,7 +31,7 @@ struct MetalAccelerator <: AbstractAccelerator
 end
 
 # DenseMatrix since Sparse Matrix support for Metal.jl is not implemented yet.
-struct MetalAccelerator_LUdecomp <: AbstractLUdecomp
+struct lu_decomp <: AbstractLUdecomp
     lu_decomp::LU{Float32, MtlMatrix{Float32, Metal.PrivateStorage}, MtlVector{UInt32, Metal.PrivateStorage}}
     inverse::LU{Float32, MtlMatrix{Float32, Metal.PrivateStorage}, MtlVector{UInt32, Metal.PrivateStorage}}
 end

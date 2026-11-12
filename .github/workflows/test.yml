@@ -36,7 +36,7 @@ jobs:
         #   annotate: true
 
   docker-build:
-    timeout-minutes: 40
+    timeout-minutes: 20
     runs-on: ubuntu-latest
 
     steps:
@@ -45,10 +45,10 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t camnascompiled .
+          docker build -t camnas .
 
       - name: Save image
-        run: docker save camnascompiled | gzip > image.tar.gz
+        run: docker save camnas | gzip > image.tar.gz
 
       # Save as artifact
       - uses: actions/upload-artifact@v4
@@ -59,9 +59,12 @@ jobs:
   shared-library-docker:
     needs: docker-build
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 40
 
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           name: docker-image
@@ -69,11 +72,41 @@ jobs:
       - run: |
           gunzip -c image.tar.gz | docker load
 
-      - run: |
+      - name: Build Plugin
+        run: |
           docker run --rm \
-            -e JL_MNA_ALLOW_GPU=false \
-            camnascompiled \
-            bash -lc '
-              export LD_LIBRARY_PATH=/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl/CAMNASCompiled/lib:$LD_LIBRARY_PATH
-              exec ./WSCC_9bus_mult_coupled -U Plugin -P camnasjl
-            '
+              --name camnas \
+              -v "$GITHUB_WORKSPACE:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl" \
+              -w /app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl \
+              camnas \
+              bash -lc '
+                set -e
+
+                pwd
+                ls -l CAMNASCompiled/include/julia_init.h
+                make -n wrapper.o
+                gcc --version
+
+                julia --project=. -e "using Pkg; Pkg.instantiate()"
+
+                make -j8
+              '
+
+      - name: Run solver Plugin
+        run: |
+          docker run --rm \
+              -v "$GITHUB_WORKSPACE:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl" \
+              -e JL_MNA_ALLOW_GPU=false \
+              camnas \
+              bash -lc '
+                set -ex
+
+                cd /app/dpsim/build/dpsim/examples/cxx
+
+                echo "=== Checking plugin files ==="
+                ls -la /app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl
+
+                export LD_LIBRARY_PATH=/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl/camnas/lib:$LD_LIBRARY_PATH
+
+                exec ./WSCC_9bus_mult_coupled -U Plugin -P camnasjl
+              '

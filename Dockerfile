@@ -40,7 +40,7 @@ RUN dnf update && \
 
 # Install Julia
 ARG JULIA_MAJOR=1.12
-ARG JULIA_VERSION=1.12.1
+ARG JULIA_VERSION=1.12.7
 
 RUN wget -q https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MAJOR}/julia-${JULIA_VERSION}-linux-x86_64.tar.gz && \
     tar -C /usr/local -xzf julia-${JULIA_VERSION}-linux-x86_64.tar.gz && \
@@ -50,17 +50,5 @@ RUN wget -q https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MAJOR}/juli
 ENV JULIA_BINDIR=/usr/local/julia-${JULIA_VERSION}/bin
 ENV PATH=/usr/local/julia-${JULIA_VERSION}/bin:$PATH
 
-# Copy Camnas source
+# Workdir
 WORKDIR /app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl
-
-# Use local folder for camnas source
-COPY . .
-
-# Instantiate packages
-RUN julia --project=$(pwd) --eval="using Pkg;Pkg.instantiate()"
-
-# Create shared library
-RUN make -j$(nproc) camnasjl.so
-RUN make -j$(nproc) plugin.so
-
-WORKDIR /app/dpsim/build/dpsim/examples/cxx

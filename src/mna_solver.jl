@@ -24,6 +24,7 @@ global current_strategy = NoStrategy()
 global system_matrix = Vector{AbstractLUdecomp}()
 
 function register_accelerator!(T::Type{<:AbstractAccelerator})
+    @debug "Self register: " T
     # Create Accelerator instance by calling the default constructor
     # TODO: See https://github.com/RWTH-ACS/CAMNAS.jl/issues/41
     accelerator_instance = T()
@@ -345,24 +346,6 @@ end
 # Solving Logic
 function set_csr_mat(csr_matrix)
     global csr_mat = csr_matrix
-end
-
-"""
-    get_ludecomp_type(accelerator::AbstractAccelerator) -> Type
-
-Given an accelerator object, returns the corresponding LU decomposition type
-by naming convention: <AcceleratorType>_LUdecomp
-"""
-function get_ludecomp_type(accelerator::AbstractAccelerator)
-    acc_type = typeof(accelerator)
-    acc_name = string(nameof(typeof(accelerator)))  
-    lu_type_name = Symbol(acc_name * "_LUdecomp")  
-
-    if !isdefined(Accelerators, lu_type_name)
-        error("LU decomposition type $lu_type_name not defined in module $(mod).")
-    end
-
-    return getfield(Accelerators, lu_type_name)
 end
 
 """
