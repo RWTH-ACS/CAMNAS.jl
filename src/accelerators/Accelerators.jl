@@ -2,7 +2,7 @@ module Accelerators
 import ..CAMNAS
 
 export AbstractAccelerator, AcceleratorProperties, AbstractLUdecomp
-export discover_accelerator, mna_decomp, mna_solve, estimate_perf, get_tdp, getPerformanceIndicator
+export discover_accelerator, mna_decomp, mna_solve, estimate_perf, get_tdp, getPerformanceIndicator, get_ludecomp_type
 
 using SparseArrays
 using LinearAlgebra
@@ -95,6 +95,11 @@ function load_all_accelerators(accelerators::Vector{AbstractAccelerator})   # Ac
         end
     end
 end
+
+function ludecomp_type end
+
+get_ludecomp_type(accelerator::AbstractAccelerator) =
+    ludecomp_type(typeof(accelerator))
 
 function has_driver(accelerator::AbstractAccelerator)
     @error "has_driver not implemented for $(typeof(accelerator))"
