@@ -13,6 +13,8 @@ struct NoAccelerator_LUdecomp <: AbstractLUdecomp
     lu_decomp::LinearAlgebra.TransposeFactorization
 end
 
+ludecomp_type(::Type{NoAccelerator}) = NoAccelerator_LUdecomp
+
 function has_driver(accelerator::NoAccelerator)
     return true
 end
