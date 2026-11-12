@@ -99,9 +99,9 @@ jobs:
                 cd /app/dpsim/build/dpsim/examples/cxx
 
                 echo "=== Checking plugin files ==="
-                ls -la /app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl
+                ls -la /app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl/CAMNASCompiled/lib
 
-                export LD_LIBRARY_PATH=/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl/camnas/lib:$LD_LIBRARY_PATH
+                export LD_LIBRARY_PATH=/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl/CAMNASCompiled/lib:$LD_LIBRARY_PATH
 
                 exec ./WSCC_9bus_mult_coupled -U Plugin -P camnasjl
               '
