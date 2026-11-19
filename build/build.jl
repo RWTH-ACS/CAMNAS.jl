@@ -10,6 +10,11 @@ const target_dir = ARGS[1]
 # See: https://github.com/JuliaLang/PackageCompiler.jl/issues/990
 delete!(ENV, "JULIA_NUM_THREADS")
 
+# Add packages for extension activation
+# See https://github.com/RWTH-ACS/CAMNAS.jl/issues/53 Fix#53
+# For example uncomment:
+# Pkg.add(["CUDA", "CUDSS"])
+
 println("Creating CAMNAS solver library in $target_dir")
 PackageCompiler.create_library("$(build_dir)/..", target_dir;
                                 lib_name="camnasjl",
