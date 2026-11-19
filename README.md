@@ -10,6 +10,9 @@ Its key features include:
 - Asynchronous system monitoring/decision-making for accelerator selection (*under development*)
 
 ## Building the DPsim plugin
+
+### ⚠️ #53 Due to a known issue, backends aren't automatically selected and have to be added manually.<br>There is a simple workaround: See https://github.com/RWTH-ACS/CAMNAS.jl/issues/53
+
 ### With Docker (recommended)
 #### Building the container
 First build the docker container with the following command:
@@ -18,8 +21,9 @@ sudo docker build -t camnas .
 ```
 
 #### Building the plugin
-<em>Note: The compilation of the shared library takes some time. Approx. 10 minutes on our hardware.</em>
+<em>Note: The compilation of the shared library takes some time. Approx. 10 minutes on our hardware.</em> <br>
 <em>Note: To be able to use gpus in containers refer to https://podman-desktop.io/docs/podman/gpu </em>
+
 The folllowing command will give the build process access to gpus and mount the local camnas folder inside of the container:
 ```shell
 sudo docker run -it --device nvidia.com/gpu=all -v .:/app/dpsim/dpsim/src/SolverPlugins/CAMNAS.jl -t camnas /bin/bash
