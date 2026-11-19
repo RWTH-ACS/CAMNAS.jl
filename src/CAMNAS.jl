@@ -43,13 +43,17 @@ The LU factorization is internally stored as `system_matrix` and implicitly used
 """
 function init end # Dummy function to allow documentation for ccallable function
 Base.@ccallable function init(matrix_ptr::Ptr{dpsim_csr_matrix})::Cint
+    @debug "Initializing CAMNAS..."
+
     sparse_mat = mat_ctojl(matrix_ptr)
     mna_init(sparse_mat)
+    @debug "System check completed with accelerators: $accelerators_vector"
 
     lu_mat = mna_decomp(sparse_mat)
     #@debug "Current LU factorization: $lu_mat"
     global system_matrix = lu_mat
 
+    @debug "... finished initialization."
     return 0
 end
 
