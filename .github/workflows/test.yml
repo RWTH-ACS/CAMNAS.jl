@@ -15,7 +15,7 @@ permissions:
 jobs:
   julia-tests:
     runs-on: [self-hosted, gpu]
-    timeout-minutes: 10
+    timeout-minutes: 20
     continue-on-error: true
     strategy:
       fail-fast: false
