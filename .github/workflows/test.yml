@@ -58,8 +58,8 @@ jobs:
 
   shared-library-docker:
     needs: docker-build
-    runs-on: [self-hosted, docker, gpu]
-    timeout-minutes: 40
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
       - name: Check out repository
